@@ -16,6 +16,13 @@ export default function PageTransition({ children }: { children: React.ReactNode
     return () => clearTimeout(timer)
   }, [pathname, children])
 
+  const transition = {
+    type: 'spring' as const,
+    stiffness: 300,
+    damping: 30,
+    duration: 0.3,
+  }
+
   return (
     <AnimatePresence mode="wait">
       <motion.div
@@ -23,12 +30,7 @@ export default function PageTransition({ children }: { children: React.ReactNode
         initial={{ opacity: 0, y: 20, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -20, scale: 0.98 }}
-        transition={{
-          type: 'spring',
-          stiffness: 300,
-          damping: 30,
-          duration: 0.3,
-        }}
+        transition={transition}
         className="h-full"
       >
         {displayChildren}

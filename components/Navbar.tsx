@@ -19,7 +19,7 @@ export default function Navbar() {
     <motion.div
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+      transition={{ type: 'spring' as const, stiffness: 100, damping: 20 }}
       className="flex h-16 items-center justify-between border-b border-[var(--navbar-border)] bg-[var(--navbar-bg)] px-6 shadow-sm"
     >
       <div className="flex items-center gap-4">

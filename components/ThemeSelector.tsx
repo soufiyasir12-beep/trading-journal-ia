@@ -18,26 +18,30 @@ export default function ThemeSelector() {
       >
         <motion.div
           animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.3, type: 'tween' as const }}
         >
           <Palette className="h-5 w-5" />
         </motion.div>
       </button>
 
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {isOpen && (
           <>
             <motion.div
+              key="theme-overlay"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.2, type: 'tween' as const }}
               className="fixed inset-0 z-40"
               onClick={() => setIsOpen(false)}
             />
             <motion.div
+              key="theme-menu"
               initial={{ opacity: 0, y: -10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              transition={{ duration: 0.2, type: 'tween' as const }}
               className="absolute right-0 top-12 z-50 w-48 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] shadow-xl p-2"
             >
               <button

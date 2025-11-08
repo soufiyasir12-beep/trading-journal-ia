@@ -201,7 +201,7 @@ export default function TradesPage() {
       <div className="flex items-center justify-center h-full">
         <motion.div
           animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' as const }}
           className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full"
         />
       </div>
@@ -254,12 +254,14 @@ export default function TradesPage() {
               )}
             </motion.button>
 
-            <AnimatePresence>
+            <AnimatePresence mode="wait">
               {isSettingsOpen && (
                 <motion.div
+                  key="settings-panel"
                   initial={{ opacity: 0, y: -10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ duration: 0.2, type: 'tween' as const }}
                   className="absolute right-0 top-full mt-2 w-80 rounded-xl bg-[var(--card-bg)] p-6 shadow-2xl border border-[var(--card-border)] z-50"
                 >
                   <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
@@ -409,20 +411,24 @@ export default function TradesPage() {
       </div>
 
       {/* Modal para agregar/editar trade */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {isModalOpen && (
           <>
             <motion.div
+              key="modal-overlay"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.2, type: 'tween' as const }}
               className="fixed inset-0 bg-black/50 z-50"
               onClick={() => setIsModalOpen(false)}
             />
             <motion.div
+              key="modal-content"
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ duration: 0.3, type: 'spring' as const, stiffness: 300, damping: 30 }}
               className="fixed inset-0 z-50 flex items-center justify-center p-4"
               onClick={(e) => e.stopPropagation()}
             >

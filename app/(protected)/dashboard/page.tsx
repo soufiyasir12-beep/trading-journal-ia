@@ -120,7 +120,7 @@ export default function DashboardPage() {
         staggerChildren: 0.1,
       },
     },
-  }
+  } as const
 
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
@@ -128,18 +128,18 @@ export default function DashboardPage() {
       y: 0,
       opacity: 1,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 100,
       },
     },
-  }
+  } as const
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
         <motion.div
           animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' as const }}
           className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full"
         />
       </div>
@@ -157,7 +157,7 @@ export default function DashboardPage() {
         <div className="flex items-center gap-3">
           <motion.div
             animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
+            transition={{ duration: 2, repeat: Infinity, type: 'tween' as const }}
           >
             <Sparkles className="h-8 w-8 text-amber-500" />
           </motion.div>
@@ -236,7 +236,7 @@ export default function DashboardPage() {
                 key={trade.id}
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * 0.1, type: 'tween' as const }}
                 className="flex items-center justify-between p-4 rounded-lg bg-[var(--background)] border border-[var(--card-border)] hover:border-amber-500 transition-colors"
               >
                 <div className="flex items-center gap-4">

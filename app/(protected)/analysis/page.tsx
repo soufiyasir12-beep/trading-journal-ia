@@ -258,7 +258,7 @@ export default function AnalysisPage() {
       <div className="flex items-center justify-center h-full">
         <motion.div
           animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' as const }}
           className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full"
         />
       </div>
@@ -286,7 +286,7 @@ export default function AnalysisPage() {
             key={metric.name}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
+            transition={{ delay: index * 0.1, type: 'tween' as const }}
             whileHover={{ scale: 1.05, y: -5 }}
             className="group relative overflow-hidden rounded-xl bg-[var(--card-bg)] p-6 shadow-lg border border-[var(--card-border)] hover:shadow-2xl transition-all"
           >
@@ -446,7 +446,7 @@ export default function AnalysisPage() {
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${setup.winrate}%` }}
-                      transition={{ delay: index * 0.1, duration: 0.5 }}
+                      transition={{ delay: index * 0.1, duration: 0.5, type: 'tween' as const }}
                       className={`h-2 rounded-full ${
                         setup.winrate > 50
                           ? 'bg-gradient-to-r from-green-500 to-emerald-500'

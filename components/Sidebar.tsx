@@ -29,7 +29,7 @@ export default function Sidebar() {
     <motion.div
       initial={{ x: -20, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
-      transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+      transition={{ type: 'spring' as const, stiffness: 100, damping: 20 }}
       className="flex h-full w-64 flex-col bg-[var(--sidebar-bg)] text-[var(--sidebar-text)] border-r border-[var(--card-border)] shadow-xl"
     >
       <motion.div 
@@ -48,7 +48,7 @@ export default function Sidebar() {
               key={item.name}
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: index * 0.1, type: 'spring', stiffness: 100 }}
+              transition={{ delay: index * 0.1, type: 'spring' as const, stiffness: 100 }}
               whileHover={{ x: 4 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -61,8 +61,8 @@ export default function Sidebar() {
                 }`}
               >
                 <motion.div
-                  animate={isActive ? { rotate: [0, 10, -10, 0] } : {}}
-                  transition={{ duration: 0.5 }}
+                  animate={isActive ? { rotate: [0, 10, -10, 0] } : { rotate: 0 }}
+                  transition={{ duration: 0.5, type: 'spring' as const }}
                 >
                   <item.icon
                     className={`h-5 w-5 transition-transform ${
@@ -71,15 +71,16 @@ export default function Sidebar() {
                   />
                 </motion.div>
                 {item.name}
-                <AnimatePresence>
+                <AnimatePresence mode="wait">
                   {isActive && (
                     <motion.div
-                      layoutId="activeTab"
+                      key={`activeTab-${item.href}`}
+                      layoutId={`activeTab-${item.href}`}
                       className="absolute inset-0 rounded-lg bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-500 -z-10"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      transition={{ type: 'spring' as const, stiffness: 380, damping: 30 }}
                     />
                   )}
                 </AnimatePresence>
