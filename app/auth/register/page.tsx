@@ -37,18 +37,33 @@ export default function RegisterPage() {
 
       if (error) throw error
 
-      // Esperar un momento para que las cookies se establezcan
-      await new Promise((resolve) => setTimeout(resolve, 100))
-
-      // Verificar que la sesión se haya establecido
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (!session) {
-        throw new Error('No se pudo establecer la sesión')
+      // Si el usuario necesita verificar su email, no habrá sesión aún
+      // Esto es el comportamiento esperado cuando se requiere verificación
+      if (data.user && !data.session) {
+        // Usuario registrado pero necesita verificar email
+        setError('')
+        setLoading(false)
+        // Mostrar mensaje de éxito
+        setError('¡Registro exitoso! Por favor, verifica tu correo electrónico para activar tu cuenta. Revisa tu bandeja de entrada.')
+        // Redirigir al login después de 3 segundos
+        setTimeout(() => {
+          router.push('/auth/login')
+        }, 3000)
+        return
       }
 
-      // Forzar recarga completa para que el proxy detecte la sesión
-      window.location.href = '/dashboard'
+      // Si hay sesión (cuando no se requiere verificación de email)
+      if (data.session) {
+        // Esperar un momento para que las cookies se establezcan
+        await new Promise((resolve) => setTimeout(resolve, 100))
+        
+        // Forzar recarga completa para que el proxy detecte la sesión
+        window.location.href = '/dashboard'
+        return
+      }
+
+      // Si llegamos aquí y no hay ni sesión ni usuario, algo salió mal
+      throw new Error('No se pudo completar el registro')
     } catch (error: any) {
       setError(error.message || 'Error al registrar usuario')
       setLoading(false)
@@ -68,7 +83,11 @@ export default function RegisterPage() {
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleRegister}>
           {error && (
-            <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+            <div className={`rounded-lg p-3 text-sm ${
+              error.includes('¡Registro exitoso!') 
+                ? 'bg-green-50 text-green-600' 
+                : 'bg-red-50 text-red-600'
+            }`}>
               {error}
             </div>
           )}
