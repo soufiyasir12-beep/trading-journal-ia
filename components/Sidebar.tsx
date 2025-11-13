@@ -62,7 +62,7 @@ export default function Sidebar() {
               >
                 <motion.div
                   animate={isActive ? { rotate: [0, 10, -10, 0] } : { rotate: 0 }}
-                  transition={{ duration: 0.5, type: 'spring' as const }}
+                  transition={{ duration: 0.5, type: 'tween' as const, ease: 'easeInOut' }}
                 >
                   <item.icon
                     className={`h-5 w-5 transition-transform ${

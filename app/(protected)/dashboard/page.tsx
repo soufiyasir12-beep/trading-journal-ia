@@ -10,6 +10,7 @@ import {
   Activity,
   Sparkles,
 } from 'lucide-react'
+import AIAnalysisCard from '@/components/AIAnalysisCard'
 
 interface TradeStats {
   totalTrades: number
@@ -292,6 +293,10 @@ export default function DashboardPage() {
             </p>
           </div>
         )}
+      </motion.div>
+
+      <motion.div variants={itemVariants}>
+        <AIAnalysisCard />
       </motion.div>
     </motion.div>
   )

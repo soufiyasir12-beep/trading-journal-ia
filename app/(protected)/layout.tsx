@@ -20,7 +20,7 @@ export default async function ProtectedLayout({
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Navbar />
-        <main className="flex-1 overflow-hidden bg-[var(--background)] p-6">
+        <main className="flex-1 overflow-y-auto bg-[var(--background)] p-6">
           <PageTransition>{children}</PageTransition>
         </main>
       </div>

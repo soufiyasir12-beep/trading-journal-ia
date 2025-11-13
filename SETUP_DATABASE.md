@@ -44,3 +44,11 @@ Después de ejecutar el script, puedes verificar que la tabla existe:
 - El trigger automáticamente actualiza el campo `updated_at` cuando se modifica un registro
 - Todos los índices están configurados para optimizar las consultas
 - Los campos `entry_time` y `exit_time` son opcionales y se usan para el análisis de mejor hora para operar
+
+## Configuración de Tablas para IA
+
+Para usar el módulo de análisis con IA, también necesitas ejecutar la migración de estrategias y análisis:
+
+1. Ejecuta el archivo `supabase/migrations/004_create_strategies_and_ai_analysis.sql` en el SQL Editor
+2. Esto creará las tablas `strategies` y `ai_analysis`
+3. Ver `AI_SETUP.md` para más información sobre la configuración del módulo de IA
