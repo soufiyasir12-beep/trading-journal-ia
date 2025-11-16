@@ -78,7 +78,7 @@ export default function RegisterPage() {
             Crear Cuenta
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Comienza tu Trading Journal
+            Comienza con NeuroStrat
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleRegister}>

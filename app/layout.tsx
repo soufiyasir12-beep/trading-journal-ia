@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Trading Journal AI",
+  title: "NeuroStrat",
   description: "Trading Journal with AI Analysis",
 };
 

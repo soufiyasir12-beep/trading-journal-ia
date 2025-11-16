@@ -7,12 +7,16 @@ import {
   Upload,
   Calendar,
   BarChart3,
+  Store,
+  MessageSquare,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Estrategias', href: '/strategy', icon: Upload },
+  { name: 'Marketplace', href: '/marketplace', icon: Store },
+  { name: 'Community', href: '/community', icon: MessageSquare },
   { name: 'Trades', href: '/trades', icon: Calendar },
   { name: 'Analíticas', href: '/analysis', icon: BarChart3 },
 ]
@@ -37,7 +41,7 @@ export default function Sidebar() {
         whileHover={{ scale: 1.02 }}
       >
         <h1 className="text-xl font-bold bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-400 bg-clip-text text-transparent animate-gradient">
-          Trading Journal AI
+          NeuroStrat
         </h1>
       </motion.div>
       <nav className="flex-1 space-y-2 px-3 py-4">
@@ -48,14 +52,14 @@ export default function Sidebar() {
               key={item.name}
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: index * 0.1, type: 'spring' as const, stiffness: 100 }}
+              transition={{ delay: index * 0.03, type: 'spring' as const, stiffness: 200 }}
               whileHover={{ x: 4 }}
               whileTap={{ scale: 0.95 }}
             >
               <button
                 onClick={() => handleNavigation(item.href)}
-                className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all relative w-full text-left ${
-                  isActive
+                className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all relative w-full text-left cursor-pointer ${
+                  isActive || pathname.startsWith(item.href + '/')
                     ? 'bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-500 text-white shadow-lg shadow-amber-500/50'
                     : 'text-[var(--sidebar-text)] hover:bg-[var(--card-bg)] hover:text-[var(--text-primary)]'
                 }`}

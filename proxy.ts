@@ -45,14 +45,27 @@ export async function proxy(request: NextRequest) {
   const isAuthPage = pathname.startsWith('/auth/login') || pathname.startsWith('/auth/register')
   
   // Rutas protegidas (solo estas necesitan autenticación)
+  // Marketplace es público para ver, pero requiere auth para subir/comprar
   const isProtectedRoute = 
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/strategy') ||
     pathname.startsWith('/trades') ||
     pathname.startsWith('/analysis')
+  
+  // Marketplace: permitir acceso público para ver, pero proteger acciones
+  const isMarketplaceAction = 
+    pathname.startsWith('/marketplace') && (
+      pathname.includes('/upload') ||
+      pathname.match(/\/marketplace\/[^/]+\/(purchase|edit|delete)/)
+    )
 
   // Si no hay sesión y el usuario intenta acceder a una ruta protegida
   if (!session && isProtectedRoute) {
+    return NextResponse.redirect(new URL('/auth/login', request.url))
+  }
+  
+  // Marketplace actions require authentication
+  if (!session && isMarketplaceAction) {
     return NextResponse.redirect(new URL('/auth/login', request.url))
   }
 

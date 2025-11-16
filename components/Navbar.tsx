@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { LogOut } from 'lucide-react'
 import { motion } from 'framer-motion'
 import ThemeSelector from './ThemeSelector'
+import NotificationBell from './community/NotificationBell'
 
 export default function Navbar() {
   const router = useRouter()
@@ -27,16 +28,17 @@ export default function Navbar() {
           className="text-lg font-semibold text-[var(--text-primary)]"
           whileHover={{ scale: 1.05 }}
         >
-          Trading Journal
+          NeuroStrat
         </motion.h2>
       </div>
       <div className="flex items-center gap-3">
+        <NotificationBell />
         <ThemeSelector />
         <motion.button
           onClick={handleLogout}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-red-600 to-red-700 px-4 py-2 text-sm font-medium text-white transition-all hover:shadow-lg hover:shadow-red-500/50"
+          className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-red-600 to-red-700 px-4 py-2 text-sm font-medium text-white transition-all hover:shadow-lg hover:shadow-red-500/50 cursor-pointer"
         >
           <LogOut className="h-4 w-4" />
           Cerrar Sesión

@@ -167,7 +167,7 @@ export default function DashboardPage() {
               Dashboard
             </h1>
             <p className="mt-2 text-sm text-[var(--text-secondary)]">
-              Bienvenido a tu Trading Journal con IA
+              Bienvenido a NeuroStrat
             </p>
           </div>
         </div>

@@ -51,7 +51,7 @@ export default function LoginPage() {
             Iniciar Sesión
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Accede a tu Trading Journal
+            Accede a NeuroStrat
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>

@@ -11,16 +11,16 @@ export default function PageTransition({ children }: { children: React.ReactNode
   useEffect(() => {
     const timer = setTimeout(() => {
       setDisplayChildren(children)
-    }, 100)
+    }, 30)
 
     return () => clearTimeout(timer)
   }, [pathname, children])
 
   const transition = {
     type: 'spring' as const,
-    stiffness: 300,
-    damping: 30,
-    duration: 0.3,
+    stiffness: 400,
+    damping: 35,
+    duration: 0.15,
   }
 
   return (

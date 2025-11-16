@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { FileText, Plus, Edit, Trash2, Save, X } from 'lucide-react'
+import ImportStrategy from '@/components/ImportStrategy'
 
 interface Strategy {
   id: string
@@ -150,13 +151,16 @@ export default function StrategyPage() {
             Gestiona tus estrategias de trading para análisis con IA
           </p>
         </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-lg font-medium hover:from-amber-600 hover:to-yellow-600 transition-all flex items-center gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          {showForm ? 'Cancelar' : 'Nueva Estrategia'}
-        </button>
+        <div className="flex items-center gap-3">
+          <ImportStrategy onImportSuccess={fetchStrategies} />
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="px-4 py-2 bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-lg font-medium hover:from-amber-600 hover:to-yellow-600 transition-all flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            {showForm ? 'Cancelar' : 'Nueva Estrategia'}
+          </button>
+        </div>
       </div>
 
       {showForm && (

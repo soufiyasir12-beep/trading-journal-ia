@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
-import { X, Save, Settings, DollarSign, Percent, ChevronDown, ChevronUp } from 'lucide-react'
+import { X, Save, Settings, DollarSign, Percent, ChevronDown, ChevronUp, Trash2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import ImportTrades from '@/components/ImportTrades'
 
 interface Trade {
   id?: string
@@ -150,6 +151,38 @@ export default function TradesPage() {
     }
   }
 
+  const handleDeleteTrade = async (tradeId: string) => {
+    if (!confirm('¿Estás seguro de que quieres eliminar este trade?')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/trades?id=${tradeId}`, {
+        method: 'DELETE',
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Error al eliminar el trade')
+      }
+
+      // Actualizar la lista de trades
+      const updatedTrades = trades.filter(t => t.id !== tradeId)
+      setTrades(updatedTrades)
+      
+      // Actualizar los trades del día si hay una fecha seleccionada
+      if (selectedDate) {
+        const dateStr = format(selectedDate, 'yyyy-MM-dd')
+        const dayTradesList = updatedTrades.filter(t => t.trade_date === dateStr)
+        setDayTrades(dayTradesList)
+      }
+    } catch (error: any) {
+      console.error('Error deleting trade:', error)
+      alert(error.message || 'Error al eliminar el trade. Por favor intenta nuevamente.')
+    }
+  }
+
   const getDayClassName = ({ date, view }: { date: Date; view: string }) => {
     if (view !== 'month') return ''
     
@@ -225,6 +258,7 @@ export default function TradesPage() {
         </p>
       </div>
         <div className="flex items-center gap-3">
+          <ImportTrades onImportSuccess={fetchTrades} />
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -232,7 +266,7 @@ export default function TradesPage() {
               setSelectedDate(new Date())
               setIsModalOpen(true)
             }}
-            className="px-4 py-2 bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-500 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all"
+            className="px-4 py-2 bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-500 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all cursor-pointer"
           >
             Nuevo Trade
           </motion.button>
@@ -243,7 +277,7 @@ export default function TradesPage() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-              className="px-4 py-2 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg font-medium text-[var(--text-primary)] hover:bg-[var(--background)] transition-all flex items-center gap-2"
+              className="px-4 py-2 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg font-medium text-[var(--text-primary)] hover:bg-[var(--background)] transition-all flex items-center gap-2 cursor-pointer"
             >
               <Settings className="h-5 w-5" />
               Configuración
@@ -278,7 +312,7 @@ export default function TradesPage() {
                             setResultType('percentage')
                             saveSettings()
                           }}
-                          className={`flex-1 px-3 py-2 rounded-lg transition-all ${
+                          className={`flex-1 px-3 py-2 rounded-lg transition-all cursor-pointer ${
                             resultType === 'percentage'
                               ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-white'
                               : 'bg-[var(--background)] text-[var(--text-primary)]'
@@ -292,7 +326,7 @@ export default function TradesPage() {
                             setResultType('money')
                             saveSettings()
                           }}
-                          className={`flex-1 px-3 py-2 rounded-lg transition-all ${
+                          className={`flex-1 px-3 py-2 rounded-lg transition-all cursor-pointer ${
                             resultType === 'money'
                               ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-white'
                               : 'bg-[var(--background)] text-[var(--text-primary)]'
@@ -439,7 +473,7 @@ export default function TradesPage() {
                   </h2>
                   <button
                     onClick={() => setIsModalOpen(false)}
-                    className="p-2 hover:bg-[var(--background)] rounded-lg transition-colors"
+                    className="p-2 hover:bg-[var(--background)] rounded-lg transition-colors cursor-pointer"
                   >
                     <X className="h-5 w-5" />
                   </button>
@@ -617,11 +651,11 @@ export default function TradesPage() {
                       <div className="space-y-2">
                         {dayTrades.map((trade, index) => (
                           <div
-                            key={index}
+                            key={trade.id || index}
                             className="p-3 rounded-lg bg-[var(--background)] border border-[var(--card-border)]"
                           >
                             <div className="flex items-center justify-between">
-                              <div>
+                              <div className="flex-1">
                                 <p className="font-medium text-[var(--text-primary)]">
                                   {trade.pair} - {trade.setup}
                                 </p>
@@ -629,22 +663,35 @@ export default function TradesPage() {
                                   {trade.direction} | R:R {trade.risk_reward || 'N/A'}
                                 </p>
                               </div>
-                              <span
-                                className={`font-semibold ${
-                                  trade.result === 'win'
-                                    ? 'text-green-500'
-                                    : trade.result === 'loss'
-                                    ? 'text-red-500'
-                                    : 'text-yellow-500'
-                                }`}
-                              >
-                                {trade.result === 'win' ? '+' : trade.result === 'loss' ? '-' : ''}
-                                {trade.result_amount
-                                  ? resultType === 'money'
-                                    ? `$${Math.abs(parseFloat(trade.result_amount.toString()) || 0).toFixed(2)}`
-                                    : `${Math.abs(parseFloat(trade.result_amount.toString()) || 0).toFixed(2)}%`
-                                  : 'Breakeven'}
-                              </span>
+                              <div className="flex items-center gap-3">
+                                <span
+                                  className={`font-semibold ${
+                                    trade.result === 'win'
+                                      ? 'text-green-500'
+                                      : trade.result === 'loss'
+                                      ? 'text-red-500'
+                                      : 'text-yellow-500'
+                                  }`}
+                                >
+                                  {trade.result === 'win' ? '+' : trade.result === 'loss' ? '-' : ''}
+                                  {trade.result_amount
+                                    ? resultType === 'money'
+                                      ? `$${Math.abs(parseFloat(trade.result_amount.toString()) || 0).toFixed(2)}`
+                                      : `${Math.abs(parseFloat(trade.result_amount.toString()) || 0).toFixed(2)}%`
+                                    : 'Breakeven'}
+                                </span>
+                                {trade.id && (
+                                  <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={() => handleDeleteTrade(trade.id!)}
+                                    className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors cursor-pointer"
+                                    title="Eliminar trade"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </motion.button>
+                                )}
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -658,7 +705,7 @@ export default function TradesPage() {
                       whileTap={{ scale: 0.95 }}
                       onClick={handleSaveTrade}
                       disabled={saving}
-                      className="flex-1 px-4 py-3 bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-500 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="flex-1 px-4 py-3 bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-500 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
                     >
                       <Save className="h-5 w-5" />
                       {saving ? 'Guardando...' : 'Guardar Trade'}
@@ -667,7 +714,7 @@ export default function TradesPage() {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setIsModalOpen(false)}
-                      className="px-4 py-3 bg-[var(--background)] border border-[var(--card-border)] text-[var(--text-primary)] rounded-lg font-medium hover:bg-[var(--card-bg)] transition-all"
+                      className="px-4 py-3 bg-[var(--background)] border border-[var(--card-border)] text-[var(--text-primary)] rounded-lg font-medium hover:bg-[var(--card-bg)] transition-all cursor-pointer"
                     >
                       Cancelar
                     </motion.button>
