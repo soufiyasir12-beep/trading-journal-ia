@@ -90,36 +90,45 @@ export async function GET(request: NextRequest) {
     if (type === 'followers') {
       query = supabase
         .from('follows')
-        .select(`
-          *,
-          follower:follower_id (
-            id,
-            username,
-            avatar_url,
-            role,
-            trading_style_tags
-          )
-        `)
+        .select('*')
         .eq('following_id', userId)
     } else {
       query = supabase
         .from('follows')
-        .select(`
-          *,
-          following:following_id (
-            id,
-            username,
-            avatar_url,
-            role,
-            trading_style_tags
-          )
-        `)
+        .select('*')
         .eq('follower_id', userId)
     }
 
     const { data: follows, error } = await query
 
     if (error) throw error
+
+    // Get user IDs from follows
+    const userIds = type === 'followers'
+      ? [...new Set((follows || []).map((f: any) => f.follower_id).filter(Boolean))]
+      : [...new Set((follows || []).map((f: any) => f.following_id).filter(Boolean))]
+
+    // Fetch profiles for all users
+    let profiles: any[] = []
+    if (userIds.length > 0) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_url, role, trading_style_tags')
+        .in('id', userIds)
+      profiles = data || []
+    }
+
+    // Create a map of user_id -> profile
+    const profileMap = new Map(profiles.map((p: any) => [p.id, p]))
+
+    // Combine follows with profiles
+    const followsWithProfiles = (follows || []).map((follow: any) => {
+      const profileId = type === 'followers' ? follow.follower_id : follow.following_id
+      return {
+        ...follow,
+        [type === 'followers' ? 'follower' : 'following']: profileMap.get(profileId) || null,
+      }
+    })
 
     // Check if current user is following
     let isFollowing = false
@@ -135,7 +144,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      follows: follows || [],
+      follows: followsWithProfiles,
       isFollowing,
     })
   } catch (error: any) {

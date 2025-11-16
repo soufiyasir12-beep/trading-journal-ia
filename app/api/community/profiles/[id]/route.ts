@@ -3,11 +3,11 @@ import { createClient } from '@/lib/auth'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient()
-    const { id } = params
+    const { id } = await params
 
     // Get profile
     const { data: profile, error: profileError } = await supabase
@@ -87,13 +87,14 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
+    const { id } = await params
 
-    if (!user || user.id !== params.id) {
+    if (!user || user.id !== id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -112,7 +113,7 @@ export async function PUT(
     const { data: updatedProfile, error } = await supabase
       .from('profiles')
       .update(updateData)
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
       .single()
 

@@ -19,18 +19,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from('notifications')
-      .select(`
-        *,
-        related_user:related_user_id (
-          id,
-          username,
-          avatar_url
-        ),
-        related_post:related_post_id (
-          id,
-          title
-        )
-      `)
+      .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(limit)
@@ -43,6 +32,37 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error
 
+    // Get unique user IDs and post IDs
+    const userIds = [...new Set((notifications || []).map((n: any) => n.related_user_id).filter(Boolean))]
+    const postIds = [...new Set((notifications || []).map((n: any) => n.related_post_id).filter(Boolean))]
+
+    // Fetch profiles and posts
+    const [profilesResult, postsResult] = await Promise.all([
+      userIds.length > 0
+        ? supabase
+            .from('profiles')
+            .select('id, username, avatar_url')
+            .in('id', userIds)
+        : Promise.resolve({ data: [] }),
+      postIds.length > 0
+        ? supabase
+            .from('posts')
+            .select('id, title')
+            .in('id', postIds)
+        : Promise.resolve({ data: [] }),
+    ])
+
+    // Create maps
+    const profileMap = new Map((profilesResult.data || []).map((p: any) => [p.id, p]))
+    const postMap = new Map((postsResult.data || []).map((p: any) => [p.id, p]))
+
+    // Combine notifications with related data
+    const notificationsWithData = (notifications || []).map((notification: any) => ({
+      ...notification,
+      related_user: notification.related_user_id ? profileMap.get(notification.related_user_id) || null : null,
+      related_post: notification.related_post_id ? postMap.get(notification.related_post_id) || null : null,
+    }))
+
     // Get unread count
     const { count: unreadCount } = await supabase
       .from('notifications')
@@ -51,7 +71,7 @@ export async function GET(request: NextRequest) {
       .eq('is_read', false)
 
     return NextResponse.json({
-      notifications: notifications || [],
+      notifications: notificationsWithData,
       unreadCount: unreadCount || 0,
     })
   } catch (error: any) {
