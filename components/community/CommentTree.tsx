@@ -16,11 +16,12 @@ interface Profile {
 
 interface Comment {
   id: string
+  user_id: string
   content: string
   upvotes: number
   downvotes: number
   created_at: string
-  profiles?: Profile
+  profiles?: Profile | null
   replies?: Comment[]
 }
 

@@ -37,9 +37,10 @@ export async function GET(request: NextRequest) {
     // Create a map of user_id -> profile
     const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]))
 
-    // Combine posts with profiles
+    // Combine posts with profiles - ensure user_id is always present
     const postsWithProfiles = (posts || []).map((post: any) => ({
       ...post,
+      user_id: post.user_id, // Explicitly include user_id
       profiles: profileMap.get(post.user_id) || null,
     }))
 
@@ -99,6 +100,7 @@ export async function POST(request: NextRequest) {
 
     const postWithProfile = {
       ...post,
+      user_id: post.user_id, // Explicitly include user_id
       profiles: profile || null,
     }
 

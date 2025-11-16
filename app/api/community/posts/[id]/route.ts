@@ -33,6 +33,7 @@ export async function GET(
 
     const postWithProfile = {
       ...post,
+      user_id: post.user_id, // Explicitly include user_id
       profiles: profile || null,
     }
 
@@ -129,6 +130,7 @@ export async function PUT(
 
     const postWithProfile = {
       ...updatedPost,
+      user_id: updatedPost.user_id, // Explicitly include user_id
       profiles: authorProfile || null,
     }
 

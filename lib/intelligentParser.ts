@@ -8,13 +8,13 @@ export interface ParsedTrade {
   trade_date?: string
   direction?: 'Long' | 'Short'
   risk_percentage?: number
-  risk_reward?: number
+  risk_reward?: number | null
   result?: 'win' | 'loss' | 'breakeven'
   result_amount?: number
   setup?: string
   notes?: string
-  entry_time?: string
-  exit_time?: string
+  entry_time?: string | null
+  exit_time?: string | null
 }
 
 /**

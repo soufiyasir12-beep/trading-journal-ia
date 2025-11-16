@@ -19,6 +19,7 @@ interface Profile {
 interface ThreadCardProps {
   post: {
     id: string
+    user_id: string
     title: string
     content: string
     category: string
@@ -28,7 +29,7 @@ interface ThreadCardProps {
     is_pinned: boolean
     is_locked: boolean
     created_at: string
-    profiles?: Profile
+    profiles?: Profile | null
   }
   currentUserId?: string
 }

@@ -57,9 +57,11 @@ export async function GET(request: NextRequest) {
 
         return {
           ...comment,
+          user_id: comment.user_id, // Explicitly include user_id
           profiles: profileMap.get(comment.user_id) || null,
           replies: (replies || []).map((reply: any) => ({
             ...reply,
+            user_id: reply.user_id, // Explicitly include user_id
             profiles: replyProfileMap.get(reply.user_id) || null,
           })),
         }
@@ -119,6 +121,7 @@ export async function POST(request: NextRequest) {
 
     const commentWithProfile = {
       ...comment,
+      user_id: comment.user_id, // Explicitly include user_id
       profiles: profile || null,
     }
 

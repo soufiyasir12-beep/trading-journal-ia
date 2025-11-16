@@ -68,6 +68,7 @@ export async function PUT(
 
     const commentWithProfile = {
       ...updatedComment,
+      user_id: updatedComment.user_id, // Explicitly include user_id
       profiles: authorProfile || null,
     }
 
