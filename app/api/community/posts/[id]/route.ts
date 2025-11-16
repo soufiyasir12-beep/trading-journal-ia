@@ -65,11 +65,14 @@ export async function PUT(
     const { title, content } = body
 
     // Check if user owns the post or is a moderator
-    const { data: post } = await supabase
+    // Select all necessary fields including title and content
+    const { data: post, error: fetchError } = await supabase
       .from('posts')
-      .select('user_id')
+      .select('id, user_id, title, content, created_at, updated_at, category, upvotes, downvotes, comments_count, is_pinned, is_locked')
       .eq('id', id)
       .single()
+
+    if (fetchError) throw fetchError
 
     if (!post) {
       return NextResponse.json(
@@ -94,12 +97,23 @@ export async function PUT(
       )
     }
 
+    // Build update object - only update fields that are provided
+    const updateData: any = {}
+    if (title !== undefined) {
+      updateData.title = title
+    } else if (post.title) {
+      updateData.title = post.title
+    }
+    
+    if (content !== undefined) {
+      updateData.content = content
+    } else if (post.content) {
+      updateData.content = post.content
+    }
+
     const { data: updatedPost, error } = await supabase
       .from('posts')
-      .update({
-        title: title || post.title,
-        content: content || post.content,
-      })
+      .update(updateData)
       .eq('id', id)
       .select('*')
       .single()
