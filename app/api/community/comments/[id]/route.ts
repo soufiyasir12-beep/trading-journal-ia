@@ -34,13 +34,13 @@ export async function PUT(
       )
     }
 
-    const { data: profile } = await supabase
+    const { data: userProfile } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single()
 
-    const isModerator = profile?.role === 'moderator'
+    const isModerator = userProfile?.role === 'moderator'
     const isOwner = comment.user_id === user.id
 
     if (!isOwner && !isModerator) {
@@ -60,7 +60,7 @@ export async function PUT(
     if (error) throw error
 
     // Fetch profile for the comment author
-    const { data: profile } = await supabase
+    const { data: authorProfile } = await supabase
       .from('profiles')
       .select('id, username, avatar_url, role, trading_style_tags')
       .eq('id', updatedComment.user_id)
@@ -68,7 +68,7 @@ export async function PUT(
 
     const commentWithProfile = {
       ...updatedComment,
-      profiles: profile || null,
+      profiles: authorProfile || null,
     }
 
     return NextResponse.json({ comment: commentWithProfile })
