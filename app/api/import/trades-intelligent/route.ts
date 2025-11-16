@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/auth'
 import { createGeminiClient } from '@/lib/geminiClient'
-import { parseTradesFromText, parseTradesWithAI, normalizeTrade } from '@/lib/intelligentParser'
+import { 
+  parseTradesFromText, 
+  parseTradesWithAI, 
+  normalizeTrade,
+  isValidParsedTrade,
+  type ParsedTrade 
+} from '@/lib/intelligentParser'
 
 const XLSX = require('xlsx')
 
@@ -196,12 +202,12 @@ export async function POST(request: NextRequest) {
           const parsedTrades = await parseTradesWithAI(text, geminiClient)
           
           trades = parsedTrades
-            .map(trade => normalizeTrade(trade))
-            .filter((trade): trade is ParsedTrade => trade !== null)
-            .map(trade => ({
+            .map((trade: ParsedTrade) => normalizeTrade(trade))
+            .filter(isValidParsedTrade)
+            .map((trade: ParsedTrade) => ({
               user_id: user.id,
-              pair: trade.pair!,
-              trade_date: trade.trade_date!,
+              pair: trade.pair || 'UNKNOWN',
+              trade_date: trade.trade_date || new Date().toISOString().split('T')[0],
               direction: trade.direction || 'Long',
               risk_percentage: trade.risk_percentage || 0,
               risk_reward: trade.risk_reward || null,
@@ -218,12 +224,12 @@ export async function POST(request: NextRequest) {
           // Fallback a parsing con regex
           const parsedTrades = parseTradesFromText(text)
           trades = parsedTrades
-            .map(trade => normalizeTrade(trade))
-            .filter((trade): trade is ParsedTrade => trade !== null)
-            .map(trade => ({
+            .map((trade: ParsedTrade) => normalizeTrade(trade))
+            .filter(isValidParsedTrade)
+            .map((trade: ParsedTrade) => ({
               user_id: user.id,
-              pair: trade.pair!,
-              trade_date: trade.trade_date!,
+              pair: trade.pair || 'UNKNOWN',
+              trade_date: trade.trade_date || new Date().toISOString().split('T')[0],
               direction: trade.direction || 'Long',
               risk_percentage: trade.risk_percentage || 0,
               risk_reward: trade.risk_reward || null,
@@ -240,12 +246,12 @@ export async function POST(request: NextRequest) {
         // Usar parsing con regex
         const parsedTrades = parseTradesFromText(text)
         trades = parsedTrades
-          .map(trade => normalizeTrade(trade))
-          .filter((trade): trade is ParsedTrade => trade !== null)
-          .map(trade => ({
+          .map((trade: ParsedTrade) => normalizeTrade(trade))
+          .filter(isValidParsedTrade)
+          .map((trade: ParsedTrade) => ({
             user_id: user.id,
-            pair: trade.pair!,
-            trade_date: trade.trade_date!,
+            pair: trade.pair || 'UNKNOWN',
+            trade_date: trade.trade_date || new Date().toISOString().split('T')[0],
             direction: trade.direction || 'Long',
             risk_percentage: trade.risk_percentage || 0,
             risk_reward: trade.risk_reward || null,

@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/auth'
-import { parseTradesFromText, normalizeTrade } from '@/lib/intelligentParser'
+import { 
+  parseTradesFromText, 
+  normalizeTrade, 
+  isValidParsedTrade,
+  type ParsedTrade 
+} from '@/lib/intelligentParser'
 import { createGeminiClient } from '@/lib/geminiClient'
 import '@/lib/pdfPolyfill' // Polyfill para DOMMatrix
 
@@ -246,12 +251,12 @@ export async function POST(request: NextRequest) {
           const parsedTrades = await parseTradesWithAI(extractedText, geminiClient)
           
           trades = parsedTrades
-            .map(trade => normalizeTrade(trade))
-            .filter((trade): trade is any => trade !== null)
-            .map(trade => ({
+            .map((trade: ParsedTrade) => normalizeTrade(trade))
+            .filter(isValidParsedTrade)
+            .map((trade: ParsedTrade) => ({
               user_id: user.id,
-              pair: trade.pair!,
-              trade_date: trade.trade_date!,
+              pair: trade.pair || 'UNKNOWN',
+              trade_date: trade.trade_date || new Date().toISOString().split('T')[0],
               direction: trade.direction || 'Long',
               risk_percentage: trade.risk_percentage || 0,
               risk_reward: trade.risk_reward || null,
@@ -267,12 +272,12 @@ export async function POST(request: NextRequest) {
           // Usar parsing con regex
           const parsedTrades = parseTradesFromText(extractedText)
           trades = parsedTrades
-            .map(trade => normalizeTrade(trade))
-            .filter((trade): trade is any => trade !== null)
-            .map(trade => ({
+            .map((trade: ParsedTrade) => normalizeTrade(trade))
+            .filter(isValidParsedTrade)
+            .map((trade: ParsedTrade) => ({
               user_id: user.id,
-              pair: trade.pair!,
-              trade_date: trade.trade_date!,
+              pair: trade.pair || 'UNKNOWN',
+              trade_date: trade.trade_date || new Date().toISOString().split('T')[0],
               direction: trade.direction || 'Long',
               risk_percentage: trade.risk_percentage || 0,
               risk_reward: trade.risk_reward || null,

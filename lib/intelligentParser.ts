@@ -3,7 +3,7 @@
  * Usa técnicas de NLP, regex avanzados y heurísticas para adaptarse a diferentes formatos
  */
 
-interface ParsedTrade {
+export interface ParsedTrade {
   pair?: string
   trade_date?: string
   direction?: 'Long' | 'Short'
@@ -303,6 +303,7 @@ IMPORTANTE: Responde SOLO con el JSON, sin texto adicional antes o después.
 
 /**
  * Normaliza y valida un trade parseado
+ * Retorna un ParsedTrade normalizado o null si no tiene datos mínimos válidos
  */
 export function normalizeTrade(trade: ParsedTrade): ParsedTrade | null {
   // Validar que tenga al menos par o fecha
@@ -326,5 +327,12 @@ export function normalizeTrade(trade: ParsedTrade): ParsedTrade | null {
   }
 
   return normalized
+}
+
+/**
+ * Type guard para verificar si un trade es válido (no null)
+ */
+export function isValidParsedTrade(trade: ParsedTrade | null): trade is ParsedTrade {
+  return trade !== null && (trade.pair !== undefined || trade.trade_date !== undefined)
 }
 
