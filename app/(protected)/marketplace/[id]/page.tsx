@@ -25,6 +25,7 @@ interface Strategy {
   price: number
   rating: number
   rating_count: number
+  purchase_count?: number
   pair?: string
   timeframe?: string
   strategy_type?: string

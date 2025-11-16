@@ -81,13 +81,44 @@ export async function GET(request: NextRequest) {
       data.forEach((strategy: any) => {
         strategy.is_purchased = purchasedIds.has(strategy.id)
         strategy.is_owner = strategy.user_id === user.id
+        // Ensure purchase_count is always set
+        strategy.purchase_count = strategy.purchase_count ?? 0
       })
     } else if (data) {
       // Set defaults for non-authenticated users
       data.forEach((strategy: any) => {
         strategy.is_purchased = false
         strategy.is_owner = false
+        // Ensure purchase_count is always set
+        strategy.purchase_count = strategy.purchase_count ?? 0
       })
+    }
+
+    // If purchase_count is missing for any strategy, calculate it
+    if (data && data.length > 0) {
+      const strategiesNeedingCount = data.filter((s: any) => !s.purchase_count || s.purchase_count === 0)
+      if (strategiesNeedingCount.length > 0) {
+        const strategyIds = strategiesNeedingCount.map((s: any) => s.id)
+        
+        // Get purchase counts for all strategies at once
+        const { data: purchaseCounts } = await supabase
+          .from('user_purchases')
+          .select('strategy_id')
+          .in('strategy_id', strategyIds)
+
+        // Count purchases per strategy
+        const countMap = new Map<string, number>()
+        purchaseCounts?.forEach((p: any) => {
+          countMap.set(p.strategy_id, (countMap.get(p.strategy_id) || 0) + 1)
+        })
+
+        // Update strategies with purchase counts
+        data.forEach((strategy: any) => {
+          if (!strategy.purchase_count || strategy.purchase_count === 0) {
+            strategy.purchase_count = countMap.get(strategy.id) ?? 0
+          }
+        })
+      }
     }
 
     return NextResponse.json({ data: data || [] }, { status: 200 })

@@ -77,10 +77,21 @@ export async function GET(
       .eq('strategy_id', id)
       .order('created_at', { ascending: false })
 
+    // Get purchase_count (either from DB or calculate it)
+    let purchaseCount = strategy.purchase_count ?? 0
+    if (purchaseCount === 0 || purchaseCount === null || purchaseCount === undefined) {
+      const { count } = await supabase
+        .from('user_purchases')
+        .select('*', { count: 'exact', head: true })
+        .eq('strategy_id', id)
+      purchaseCount = count ?? 0
+    }
+
     return NextResponse.json(
       {
         data: {
           ...strategy,
+          purchase_count: purchaseCount,
           is_purchased: isPurchased,
           is_owner: isOwner,
           reviews: reviews || [],
