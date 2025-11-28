@@ -31,6 +31,7 @@ interface CommentTreeProps {
   postId: string
   onReply?: (parentId: string, content: string) => void
   depth?: number
+  isPostLocked?: boolean
 }
 
 export default function CommentTree({
@@ -39,6 +40,7 @@ export default function CommentTree({
   postId,
   onReply,
   depth = 0,
+  isPostLocked = false,
 }: CommentTreeProps) {
   const [showReplyForm, setShowReplyForm] = useState(false)
   const [replyContent, setReplyContent] = useState('')
@@ -191,7 +193,7 @@ export default function CommentTree({
               {comment.content}
             </p>
 
-            {currentUserId && depth < maxDepth && (
+            {currentUserId && depth < maxDepth && !isPostLocked && (
               <button
                 onClick={() => setShowReplyForm(!showReplyForm)}
                 className="flex items-center gap-1 text-xs text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors"
@@ -200,12 +202,17 @@ export default function CommentTree({
                 Reply
               </button>
             )}
+            {isPostLocked && (
+              <span className="text-xs text-[var(--text-secondary)] italic">
+                Thread locked - replies disabled
+              </span>
+            )}
           </div>
         </div>
 
         {/* Reply Form */}
         <AnimatePresence>
-          {showReplyForm && (
+          {showReplyForm && !isPostLocked && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
@@ -253,6 +260,7 @@ export default function CommentTree({
               postId={postId}
               onReply={onReply}
               depth={depth + 1}
+              isPostLocked={isPostLocked}
             />
           ))}
         </div>

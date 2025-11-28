@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard,
@@ -9,6 +8,7 @@ import {
   BarChart3,
   Store,
   MessageSquare,
+  User,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -19,6 +19,7 @@ const navigation = [
   { name: 'Community', href: '/community', icon: MessageSquare },
   { name: 'Trades', href: '/trades', icon: Calendar },
   { name: 'Analíticas', href: '/analysis', icon: BarChart3 },
+  { name: 'Perfil', href: '/profile', icon: User },
 ]
 
 export default function Sidebar() {
@@ -36,7 +37,7 @@ export default function Sidebar() {
       transition={{ type: 'spring' as const, stiffness: 100, damping: 20 }}
       className="flex h-full w-64 flex-col bg-[var(--sidebar-bg)] text-[var(--sidebar-text)] border-r border-[var(--card-border)] shadow-xl"
     >
-      <motion.div 
+      <motion.div
         className="flex h-16 items-center border-b border-[var(--card-border)] px-6"
         whileHover={{ scale: 1.02 }}
       >
@@ -58,20 +59,18 @@ export default function Sidebar() {
             >
               <button
                 onClick={() => handleNavigation(item.href)}
-                className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all relative w-full text-left cursor-pointer ${
-                  isActive || pathname.startsWith(item.href + '/')
-                    ? 'bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-500 text-white shadow-lg shadow-amber-500/50'
-                    : 'text-[var(--sidebar-text)] hover:bg-[var(--card-bg)] hover:text-[var(--text-primary)]'
-                }`}
+                className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all relative w-full text-left cursor-pointer ${isActive || pathname.startsWith(item.href + '/')
+                  ? 'bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-500 text-white shadow-lg shadow-amber-500/50'
+                  : 'text-[var(--sidebar-text)] hover:bg-[var(--card-bg)] hover:text-[var(--text-primary)]'
+                  }`}
               >
                 <motion.div
                   animate={isActive ? { rotate: [0, 10, -10, 0] } : { rotate: 0 }}
                   transition={{ duration: 0.5, type: 'tween' as const, ease: 'easeInOut' }}
                 >
                   <item.icon
-                    className={`h-5 w-5 transition-transform ${
-                      isActive ? 'scale-110' : 'group-hover:scale-110'
-                    }`}
+                    className={`h-5 w-5 transition-transform ${isActive ? 'scale-110' : 'group-hover:scale-110'
+                      }`}
                   />
                 </motion.div>
                 {item.name}

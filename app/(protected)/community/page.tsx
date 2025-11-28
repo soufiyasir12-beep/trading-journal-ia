@@ -83,7 +83,12 @@ export default function CommunityPage() {
       const response = await fetch('/api/community/posts?limit=20')
       if (response.ok) {
         const data = await response.json()
-        setPosts(data.posts || [])
+        const allPosts = data.posts || []
+        // Remove duplicates by ID
+        const uniquePosts = Array.from(
+          new Map(allPosts.map((post: any) => [post.id, post])).values()
+        )
+        setPosts(uniquePosts)
       }
     } catch (error) {
       console.error('Error fetching posts:', error)
@@ -169,7 +174,7 @@ export default function CommunityPage() {
           <div className="space-y-4">
             {posts.map((post, index) => (
               <motion.div
-                key={post.id}
+                key={`${post.id}-${index}`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}

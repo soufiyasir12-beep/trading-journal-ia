@@ -85,9 +85,18 @@ export default function CategoryPage() {
         const newPosts = data.posts || []
         
         if (reset) {
-          setPosts(newPosts)
+          // Remove duplicates by ID
+          const uniquePosts = Array.from(
+            new Map(newPosts.map((post: any) => [post.id, post])).values()
+          )
+          setPosts(uniquePosts)
         } else {
-          setPosts((prev) => [...prev, ...newPosts])
+          // Remove duplicates when adding new posts
+          setPosts((prev) => {
+            const existingIds = new Set(prev.map((p: any) => p.id))
+            const uniqueNewPosts = newPosts.filter((post: any) => !existingIds.has(post.id))
+            return [...prev, ...uniqueNewPosts]
+          })
         }
         
         setHasMore(newPosts.length === 20)
@@ -164,7 +173,7 @@ export default function CategoryPage() {
           <div className="space-y-4">
             {posts.map((post, index) => (
               <motion.div
-                key={post.id}
+                key={`${post.id}-${index}`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}

@@ -200,7 +200,7 @@ export default function ProfilePage() {
         </motion.div>
       )}
 
-      {/* Recent Posts */}
+      {/* All Posts */}
       {recentPosts.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -209,27 +209,51 @@ export default function ProfilePage() {
           className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg p-6"
         >
           <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">
-            Recent Posts
+            All Posts ({recentPosts.length})
           </h2>
           <div className="space-y-3">
             {recentPosts.map((post) => (
               <Link
                 key={post.id}
                 href={`/community/thread/${post.id}`}
-                className="block p-3 bg-[var(--background)] border border-[var(--card-border)] rounded hover:border-[var(--accent)] transition-colors"
+                className="block p-4 bg-[var(--background)] border border-[var(--card-border)] rounded-lg hover:border-[var(--accent)] transition-colors"
               >
-                <h3 className="font-medium text-[var(--text-primary)] mb-1 line-clamp-1">
-                  {post.title}
-                </h3>
-                <div className="flex items-center gap-4 text-xs text-[var(--text-secondary)]">
-                  <span>{post.category}</span>
-                  <span>↑ {post.upvotes}</span>
-                  <span>↓ {post.downvotes}</span>
-                  <span>{post.comments_count} comments</span>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-[var(--text-primary)] mb-2 line-clamp-1">
+                      {post.title}
+                    </h3>
+                    {post.content && (
+                      <p className="text-sm text-[var(--text-secondary)] mb-2 line-clamp-2">
+                        {post.content}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-4 text-xs text-[var(--text-secondary)]">
+                      <span className="px-2 py-1 bg-[var(--accent)]/20 text-[var(--accent)] rounded">
+                        {post.category}
+                      </span>
+                      <span>↑ {post.upvotes}</span>
+                      <span>↓ {post.downvotes}</span>
+                      <span>{post.comments_count} comments</span>
+                      <span>{new Date(post.created_at).toLocaleDateString()}</span>
+                    </div>
+                  </div>
                 </div>
               </Link>
             ))}
           </div>
+        </motion.div>
+      )}
+      
+      {recentPosts.length === 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg p-6 text-center"
+        >
+          <MessageSquare className="h-12 w-12 text-[var(--text-secondary)] mx-auto mb-4" />
+          <p className="text-[var(--text-secondary)]">No posts yet</p>
         </motion.div>
       )}
     </div>

@@ -99,6 +99,27 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check if post exists and is not locked
+    const { data: postData, error: postError } = await supabase
+      .from('posts')
+      .select('id, is_locked')
+      .eq('id', post_id)
+      .single()
+
+    if (postError || !postData) {
+      return NextResponse.json(
+        { error: 'Post not found' },
+        { status: 404 }
+      )
+    }
+
+    if (postData.is_locked) {
+      return NextResponse.json(
+        { error: 'This thread is locked. Comments are disabled.' },
+        { status: 403 }
+      )
+    }
+
     const { data: comment, error } = await supabase
       .from('comments')
       .insert({
@@ -110,7 +131,10 @@ export async function POST(request: NextRequest) {
       .select('*')
       .single()
 
-    if (error) throw error
+    if (error) {
+      console.error('Error inserting comment:', error)
+      throw error
+    }
 
     // Fetch profile for the comment author
     const { data: profile } = await supabase

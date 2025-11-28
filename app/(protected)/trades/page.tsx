@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
-import { X, Save, Settings, DollarSign, Percent, ChevronDown, ChevronUp, Trash2 } from 'lucide-react'
-import { format } from 'date-fns'
+import { X, Save, Settings, DollarSign, Percent, ChevronDown, ChevronUp, Trash2, Image as ImageIcon, Calendar as CalendarIcon, TrendingUp, TrendingDown } from 'lucide-react'
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isSameWeek, isSameMonth } from 'date-fns'
 import { es } from 'date-fns/locale'
 import ImportTrades from '@/components/ImportTrades'
+import { supabase } from '@/lib/supabaseClient'
 
 interface Trade {
   id?: string
@@ -37,7 +38,10 @@ export default function TradesPage() {
   const [profitColor, setProfitColor] = useState('#10b981')
   const [lossColor, setLossColor] = useState('#ef4444')
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-  
+  const [accountCapital, setAccountCapital] = useState<number | null>(null)
+  const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null)
+  const [isTradeDetailOpen, setIsTradeDetailOpen] = useState(false)
+
   const [formData, setFormData] = useState<Trade>({
     pair: '',
     risk_percentage: 0,
@@ -57,16 +61,102 @@ export default function TradesPage() {
   useEffect(() => {
     fetchTrades()
     loadSettings()
+    fetchAccountCapital()
   }, [])
 
   const loadSettings = () => {
     const savedResultType = localStorage.getItem('resultType') as 'percentage' | 'money'
     const savedProfitColor = localStorage.getItem('profitColor')
     const savedLossColor = localStorage.getItem('lossColor')
-    
+
     if (savedResultType) setResultType(savedResultType)
     if (savedProfitColor) setProfitColor(savedProfitColor)
     if (savedLossColor) setLossColor(savedLossColor)
+  }
+
+  const fetchAccountCapital = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('account_capital')
+        .eq('id', user.id)
+        .single()
+
+      if (profile?.account_capital) {
+        setAccountCapital(parseFloat(profile.account_capital.toString()))
+      }
+    } catch (error) {
+      console.error('Error fetching account capital:', error)
+    }
+  }
+
+  const convertResult = (trade: Trade, targetType: 'percentage' | 'money'): number => {
+    if (!trade.result_amount) return 0
+
+    const amount = parseFloat(trade.result_amount.toString())
+
+    // If already in target type, return as is
+    if (trade.result_type === targetType) {
+      return amount
+    }
+
+    // Need capital for conversion
+    if (!accountCapital || accountCapital <= 0) {
+      return 0
+    }
+
+    if (trade.result_type === 'percentage' && targetType === 'money') {
+      // Convert % to dollars: (percentage / 100) * capital
+      return (amount / 100) * accountCapital
+    } else if (trade.result_type === 'money' && targetType === 'percentage') {
+      // Convert dollars to %: (dollars / capital) * 100
+      return (amount / accountCapital) * 100
+    }
+
+    return amount
+  }
+
+  const calculateWeeklyResult = (date: Date): number => {
+    const weekStart = startOfWeek(date, { weekStartsOn: 1 })
+    const weekEnd = endOfWeek(date, { weekStartsOn: 1 })
+
+    const weekTrades = trades.filter(t => {
+      const tradeDate = new Date(t.trade_date)
+      return tradeDate >= weekStart && tradeDate <= weekEnd
+    })
+
+    return weekTrades.reduce((sum, trade) => {
+      const amount = resultType === 'money'
+        ? convertResult(trade, 'money')
+        : convertResult(trade, 'percentage')
+
+      if (trade.result === 'win') return sum + amount
+      if (trade.result === 'loss') return sum - Math.abs(amount)
+      return sum
+    }, 0)
+  }
+
+  const calculateMonthlyResult = (date: Date): number => {
+    const monthStart = startOfMonth(date)
+    const monthEnd = endOfMonth(date)
+
+    const monthTrades = trades.filter(t => {
+      const tradeDate = new Date(t.trade_date)
+      return tradeDate >= monthStart && tradeDate <= monthEnd
+    })
+
+    return monthTrades.reduce((sum, trade) => {
+      const amount = resultType === 'money'
+        ? convertResult(trade, 'money')
+        : convertResult(trade, 'percentage')
+
+      if (trade.result === 'win') return sum + amount
+      if (trade.result === 'loss') return sum - Math.abs(amount)
+      return sum
+    }, 0)
   }
 
   const saveSettings = () => {
@@ -170,7 +260,7 @@ export default function TradesPage() {
       // Actualizar la lista de trades
       const updatedTrades = trades.filter(t => t.id !== tradeId)
       setTrades(updatedTrades)
-      
+
       // Actualizar los trades del día si hay una fecha seleccionada
       if (selectedDate) {
         const dateStr = format(selectedDate, 'yyyy-MM-dd')
@@ -185,10 +275,10 @@ export default function TradesPage() {
 
   const getDayClassName = ({ date, view }: { date: Date; view: string }) => {
     if (view !== 'month') return ''
-    
+
     const dateStr = format(date, 'yyyy-MM-dd')
     const dayTradesList = trades.filter(t => t.trade_date === dateStr)
-    
+
     if (dayTradesList.length === 0) return ''
 
     const totalResult = dayTradesList.reduce((sum, trade) => {
@@ -199,34 +289,53 @@ export default function TradesPage() {
     }, 0)
 
     const isProfit = totalResult > 0
-    
+
     return `custom-day ${isProfit ? 'profit-day' : 'loss-day'}`
   }
 
   const tileContent = ({ date, view }: { date: Date; view: string }) => {
     if (view !== 'month') return null
-    
+
     const dateStr = format(date, 'yyyy-MM-dd')
     const dayTradesList = trades.filter(t => t.trade_date === dateStr)
-    
+
     if (dayTradesList.length === 0) return null
 
     const totalResult = dayTradesList.reduce((sum, trade) => {
-      const amount = parseFloat(trade.result_amount?.toString() || '0')
+      const amount = resultType === 'money'
+        ? convertResult(trade, 'money')
+        : convertResult(trade, 'percentage')
       if (trade.result === 'win') return sum + amount
       if (trade.result === 'loss') return sum - Math.abs(amount)
       return sum
     }, 0)
 
-    const displayValue = resultType === 'money' 
+    const displayValue = resultType === 'money'
       ? `$${Math.abs(totalResult).toFixed(2)}`
       : `${totalResult > 0 ? '+' : ''}${totalResult.toFixed(2)}%`
 
+    // Calculate weekly and monthly results
+    // const weeklyResult = calculateWeeklyResult(date)
+    // const monthlyResult = calculateMonthlyResult(date)
+
     return (
-      <div className="text-xs font-semibold mt-1">
-        {displayValue}
+      <div className="text-xs font-semibold mt-1 space-y-1">
+        <div>{displayValue}</div>
+        {dayTradesList.length > 1 && (
+          <div className="text-[10px] opacity-75">
+            {dayTradesList.length} trades
+          </div>
+        )}
       </div>
     )
+  }
+
+  const getWeekResult = (date: Date): number => {
+    return calculateWeeklyResult(date)
+  }
+
+  const getMonthResult = (date: Date): number => {
+    return calculateMonthlyResult(date)
   }
 
   if (loading) {
@@ -249,14 +358,14 @@ export default function TradesPage() {
     >
       {/* Header con título y configuración */}
       <div className="flex items-center justify-between mb-6">
-      <div>
+        <div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-500 bg-clip-text text-transparent">
             Registro de Trades
           </h1>
           <p className="mt-2 text-sm text-[var(--text-secondary)]">
             Haz clic en un día del calendario para registrar tus operaciones
-        </p>
-      </div>
+          </p>
+        </div>
         <div className="flex items-center gap-3">
           <ImportTrades onImportSuccess={fetchTrades} />
           <motion.button
@@ -270,7 +379,7 @@ export default function TradesPage() {
           >
             Nuevo Trade
           </motion.button>
-          
+
           {/* Configuración desplegable */}
           <div className="relative">
             <motion.button
@@ -312,30 +421,76 @@ export default function TradesPage() {
                             setResultType('percentage')
                             saveSettings()
                           }}
-                          className={`flex-1 px-3 py-2 rounded-lg transition-all cursor-pointer ${
-                            resultType === 'percentage'
+                          className={`flex-1 px-3 py-2 rounded-lg transition-all cursor-pointer ${resultType === 'percentage'
                               ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-white'
                               : 'bg-[var(--background)] text-[var(--text-primary)]'
-                          }`}
+                            }`}
                         >
                           <Percent className="h-4 w-4 inline mr-1" />
                           Porcentaje
                         </button>
                         <button
                           onClick={() => {
+                            if (!accountCapital || accountCapital <= 0) {
+                              alert('Por favor configura el capital de tu cuenta en tu perfil para usar la visualización en dólares')
+                              return
+                            }
                             setResultType('money')
                             saveSettings()
                           }}
-                          className={`flex-1 px-3 py-2 rounded-lg transition-all cursor-pointer ${
-                            resultType === 'money'
+                          disabled={!accountCapital || accountCapital <= 0}
+                          className={`flex-1 px-3 py-2 rounded-lg transition-all cursor-pointer ${resultType === 'money'
                               ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-white'
                               : 'bg-[var(--background)] text-[var(--text-primary)]'
-                          }`}
+                            } ${(!accountCapital || accountCapital <= 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                           <DollarSign className="h-4 w-4 inline mr-1" />
                           Dinero
                         </button>
                       </div>
+                      {(!accountCapital || accountCapital <= 0) && (
+                        <p className="text-xs text-[var(--text-secondary)] mt-2">
+                          Configura el capital de tu cuenta en tu perfil para usar la visualización en dólares
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                        Capital de Cuenta
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={accountCapital || ''}
+                          onChange={(e) => {
+                            const value = parseFloat(e.target.value) || null
+                            setAccountCapital(value)
+                          }}
+                          onBlur={async () => {
+                            if (accountCapital === null) return
+                            try {
+                              const { data: { user } } = await supabase.auth.getUser()
+                              if (user) {
+                                await supabase
+                                  .from('profiles')
+                                  .update({ account_capital: accountCapital })
+                                  .eq('id', user.id)
+                                // Optional: Add a toast here if you have a toast component
+                                console.log('Capital saved')
+                              }
+                            } catch (error) {
+                              console.error('Error updating capital:', error)
+                            }
+                          }}
+                          placeholder="Ej: 10000"
+                          className="flex-1 px-3 py-2 rounded-lg bg-[var(--background)] border border-[var(--card-border)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                        <DollarSign className="h-5 w-5 text-[var(--text-secondary)] self-center" />
+                      </div>
+                      <p className="text-xs text-[var(--text-secondary)] mt-2">
+                        Necesario para convertir entre % y dólares
+                      </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
@@ -369,9 +524,9 @@ export default function TradesPage() {
                 </motion.div>
               )}
             </AnimatePresence>
+          </div>
         </div>
       </div>
-    </div>
 
       {/* Calendario ocupando la mayor parte de la pantalla */}
       <div className="flex-1 min-h-0">
@@ -646,56 +801,108 @@ export default function TradesPage() {
                   {dayTrades.length > 0 && (
                     <div className="border-t border-[var(--card-border)] pt-4">
                       <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">
-                        Trades del día
+                        Trades del día ({dayTrades.length})
                       </h3>
-                      <div className="space-y-2">
-                        {dayTrades.map((trade, index) => (
-                          <div
-                            key={trade.id || index}
-                            className="p-3 rounded-lg bg-[var(--background)] border border-[var(--card-border)]"
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex-1">
-                                <p className="font-medium text-[var(--text-primary)]">
-                                  {trade.pair} - {trade.setup}
-                                </p>
-                                <p className="text-sm text-[var(--text-secondary)]">
-                                  {trade.direction} | R:R {trade.risk_reward || 'N/A'}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-3">
-                                <span
-                                  className={`font-semibold ${
-                                    trade.result === 'win'
-                                      ? 'text-green-500'
-                                      : trade.result === 'loss'
-                                      ? 'text-red-500'
-                                      : 'text-yellow-500'
-                                  }`}
-                                >
-                                  {trade.result === 'win' ? '+' : trade.result === 'loss' ? '-' : ''}
-                                  {trade.result_amount
-                                    ? resultType === 'money'
-                                      ? `$${Math.abs(parseFloat(trade.result_amount.toString()) || 0).toFixed(2)}`
-                                      : `${Math.abs(parseFloat(trade.result_amount.toString()) || 0).toFixed(2)}%`
-                                    : 'Breakeven'}
-                                </span>
-                                {trade.id && (
-                                  <motion.button
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}
-                                    onClick={() => handleDeleteTrade(trade.id!)}
-                                    className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors cursor-pointer"
-                                    title="Eliminar trade"
+                      <div className="space-y-2 mb-4">
+                        {dayTrades.map((trade, index) => {
+                          const convertedAmount = resultType === 'money'
+                            ? convertResult(trade, 'money')
+                            : convertResult(trade, 'percentage')
+
+                          return (
+                            <div
+                              key={trade.id || index}
+                              className="p-3 rounded-lg bg-[var(--background)] border border-[var(--card-border)] hover:border-[var(--accent)] transition-colors cursor-pointer"
+                              onClick={() => {
+                                setSelectedTrade(trade)
+                                setIsTradeDetailOpen(true)
+                              }}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                  <p className="font-medium text-[var(--text-primary)]">
+                                    {trade.pair} - {trade.setup}
+                                  </p>
+                                  <p className="text-sm text-[var(--text-secondary)]">
+                                    {trade.direction} | R:R {trade.risk_reward || 'N/A'} | Riesgo: {trade.risk_percentage}%
+                                  </p>
+                                  {trade.entry_time && trade.exit_time && (
+                                    <p className="text-xs text-[var(--text-secondary)]">
+                                      {trade.entry_time} - {trade.exit_time}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <span
+                                    className={`font-semibold ${trade.result === 'win'
+                                        ? 'text-green-500'
+                                        : trade.result === 'loss'
+                                          ? 'text-red-500'
+                                          : 'text-yellow-500'
+                                      }`}
                                   >
-                                    <Trash2 className="h-4 w-4" />
-                                  </motion.button>
-                                )}
+                                    {trade.result === 'win' ? '+' : trade.result === 'loss' ? '-' : ''}
+                                    {trade.result_amount
+                                      ? resultType === 'money'
+                                        ? `$${Math.abs(convertedAmount).toFixed(2)}`
+                                        : `${convertedAmount > 0 ? '+' : ''}${convertedAmount.toFixed(2)}%`
+                                      : 'Breakeven'}
+                                  </span>
+                                  {trade.image_url && (
+                                    <ImageIcon className="h-4 w-4 text-[var(--text-secondary)]" />
+                                  )}
+                                  {trade.id && (
+                                    <motion.button
+                                      whileHover={{ scale: 1.1 }}
+                                      whileTap={{ scale: 0.9 }}
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleDeleteTrade(trade.id!)
+                                      }}
+                                      className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                      title="Eliminar trade"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </motion.button>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          )
+                        })}
                       </div>
+
+                      {/* Weekly and Monthly Results */}
+                      {selectedDate && (
+                        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[var(--card-border)]">
+                          <div className="p-3 rounded-lg bg-[var(--background)] border border-[var(--card-border)]">
+                            <div className="flex items-center gap-2 mb-1">
+                              <CalendarIcon className="h-4 w-4 text-[var(--text-secondary)]" />
+                              <span className="text-xs text-[var(--text-secondary)]">Semana</span>
+                            </div>
+                            <p className={`text-lg font-semibold ${getWeekResult(selectedDate) >= 0 ? 'text-green-500' : 'text-red-500'
+                              }`}>
+                              {resultType === 'money'
+                                ? `$${getWeekResult(selectedDate).toFixed(2)}`
+                                : `${getWeekResult(selectedDate) >= 0 ? '+' : ''}${getWeekResult(selectedDate).toFixed(2)}%`
+                              }
+                            </p>
+                          </div>
+                          <div className="p-3 rounded-lg bg-[var(--background)] border border-[var(--card-border)]">
+                            <div className="flex items-center gap-2 mb-1">
+                              <TrendingUp className="h-4 w-4 text-[var(--text-secondary)]" />
+                              <span className="text-xs text-[var(--text-secondary)]">Mes</span>
+                            </div>
+                            <p className={`text-lg font-semibold ${getMonthResult(selectedDate) >= 0 ? 'text-green-500' : 'text-red-500'
+                              }`}>
+                              {resultType === 'money'
+                                ? `$${getMonthResult(selectedDate).toFixed(2)}`
+                                : `${getMonthResult(selectedDate) >= 0 ? '+' : ''}${getMonthResult(selectedDate).toFixed(2)}%`
+                              }
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -718,6 +925,157 @@ export default function TradesPage() {
                     >
                       Cancelar
                     </motion.button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Trade Detail Modal */}
+      <AnimatePresence mode="wait">
+        {isTradeDetailOpen && selectedTrade && (
+          <>
+            <motion.div
+              key="trade-detail-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black/50 z-50"
+              onClick={() => setIsTradeDetailOpen(false)}
+            />
+            <motion.div
+              key="trade-detail-content"
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ duration: 0.3, type: 'spring', stiffness: 300, damping: 30 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-[var(--card-border)]">
+                <div className="sticky top-0 bg-[var(--card-bg)] border-b border-[var(--card-border)] p-6 flex items-center justify-between">
+                  <h2 className="text-2xl font-bold text-[var(--text-primary)]">
+                    Detalles del Trade
+                  </h2>
+                  <button
+                    onClick={() => setIsTradeDetailOpen(false)}
+                    className="p-2 hover:bg-[var(--background)] rounded-lg transition-colors cursor-pointer"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                <div className="p-6 space-y-4">
+                  {/* Image */}
+                  {selectedTrade.image_url && (
+                    <div>
+                      <img
+                        src={selectedTrade.image_url}
+                        alt="Trade"
+                        className="w-full rounded-lg border border-[var(--card-border)]"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none'
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {/* Trade Info Grid */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                        Par
+                      </label>
+                      <p className="text-[var(--text-primary)] font-semibold">{selectedTrade.pair}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                        Dirección
+                      </label>
+                      <p className="text-[var(--text-primary)] font-semibold">{selectedTrade.direction || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                        % Riesgo
+                      </label>
+                      <p className="text-[var(--text-primary)] font-semibold">{selectedTrade.risk_percentage}%</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                        R:R (Risk Reward)
+                      </label>
+                      <p className="text-[var(--text-primary)] font-semibold">{selectedTrade.risk_reward || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                        Resultado
+                      </label>
+                      <p className={`font-semibold ${selectedTrade.result === 'win'
+                          ? 'text-green-500'
+                          : selectedTrade.result === 'loss'
+                            ? 'text-red-500'
+                            : 'text-yellow-500'
+                        }`}>
+                        {selectedTrade.result === 'win' ? 'Ganancia' : selectedTrade.result === 'loss' ? 'Pérdida' : 'Breakeven'}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                        Resultado ({resultType === 'money' ? 'USD' : '%'})
+                      </label>
+                      <p className={`font-semibold ${selectedTrade.result === 'win'
+                          ? 'text-green-500'
+                          : selectedTrade.result === 'loss'
+                            ? 'text-red-500'
+                            : 'text-yellow-500'
+                        }`}>
+                        {selectedTrade.result_amount
+                          ? resultType === 'money'
+                            ? `$${Math.abs(convertResult(selectedTrade, 'money')).toFixed(2)}`
+                            : `${convertResult(selectedTrade, 'percentage') >= 0 ? '+' : ''}${convertResult(selectedTrade, 'percentage').toFixed(2)}%`
+                          : 'Breakeven'}
+                      </p>
+                      {selectedTrade.result_type && selectedTrade.result_type !== resultType && (
+                        <p className="text-xs text-[var(--text-secondary)] mt-1">
+                          Original: {selectedTrade.result_type === 'money' ? 'USD' : '%'}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                        Hora Entrada
+                      </label>
+                      <p className="text-[var(--text-primary)]">{selectedTrade.entry_time || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                        Hora Salida
+                      </label>
+                      <p className="text-[var(--text-primary)]">{selectedTrade.exit_time || 'N/A'}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                        Setup Utilizado
+                      </label>
+                      <p className="text-[var(--text-primary)]">{selectedTrade.setup}</p>
+                    </div>
+                    {selectedTrade.notes && (
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                          Notas
+                        </label>
+                        <p className="text-[var(--text-primary)] whitespace-pre-wrap">{selectedTrade.notes}</p>
+                      </div>
+                    )}
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                        Fecha
+                      </label>
+                      <p className="text-[var(--text-primary)]">{format(new Date(selectedTrade.trade_date), 'dd MMMM yyyy', { locale: es })}</p>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -58,13 +58,12 @@ export async function GET(
       }
     })
 
-    // Get recent posts
-    const { data: recentPosts } = await supabase
+    // Get all posts (no limit for profile page)
+    const { data: allPosts } = await supabase
       .from('posts')
-      .select('id, title, category, created_at, upvotes, downvotes, comments_count')
+      .select('id, title, category, created_at, upvotes, downvotes, comments_count, content')
       .eq('user_id', id)
       .order('created_at', { ascending: false })
-      .limit(5)
 
     return NextResponse.json({
       profile,
@@ -75,7 +74,7 @@ export async function GET(
         winRate: Math.round(winRate * 100) / 100,
         totalProfit: Math.round(totalProfit * 100) / 100,
       },
-      recentPosts: recentPosts || [],
+      recentPosts: allPosts || [],
     })
   } catch (error: any) {
     return NextResponse.json(
@@ -102,13 +101,14 @@ export async function PUT(
     }
 
     const body = await request.json()
-    const { username, bio, avatar_url, trading_style_tags } = body
+    const { username, bio, avatar_url, trading_style_tags, account_capital } = body
 
     const updateData: any = {}
     if (username !== undefined) updateData.username = username
     if (bio !== undefined) updateData.bio = bio
     if (avatar_url !== undefined) updateData.avatar_url = avatar_url
     if (trading_style_tags !== undefined) updateData.trading_style_tags = trading_style_tags
+    if (account_capital !== undefined) updateData.account_capital = account_capital
 
     const { data: updatedProfile, error } = await supabase
       .from('profiles')

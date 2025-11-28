@@ -185,6 +185,12 @@ export default function ThreadPage() {
   const handleSubmitComment = async (parentId: string | null, content: string) => {
     if (!content.trim()) return
 
+    // Check if post is locked
+    if (post?.is_locked) {
+      alert('This thread is locked. Comments are disabled.')
+      return
+    }
+
     setIsSubmittingComment(true)
     try {
       const response = await fetch('/api/community/comments', {
@@ -198,15 +204,16 @@ export default function ThreadPage() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to post comment')
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        throw new Error(errorData.error || 'Failed to post comment')
       }
 
       setCommentContent('')
       fetchComments()
       fetchPost() // Update comment count
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error posting comment:', error)
-      alert('Failed to post comment. Please try again.')
+      alert(error.message || 'Failed to post comment. Please try again.')
     } finally {
       setIsSubmittingComment(false)
     }
@@ -346,7 +353,13 @@ export default function ThreadPage() {
         </h2>
 
         {/* Comment Form */}
-        {currentUser ? (
+        {post.is_locked ? (
+          <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg p-4 mb-6 text-center">
+            <p className="text-[var(--text-secondary)]">
+              This thread is locked. Comments are disabled.
+            </p>
+          </div>
+        ) : currentUser ? (
           <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg p-4 mb-6">
             <textarea
               value={commentContent}
@@ -385,6 +398,7 @@ export default function ThreadPage() {
                 currentUserId={currentUser?.id}
                 postId={threadId}
                 onReply={handleReply}
+                isPostLocked={post?.is_locked || false}
               />
             ))}
           </div>
