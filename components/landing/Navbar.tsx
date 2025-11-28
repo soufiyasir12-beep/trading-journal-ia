@@ -15,50 +15,41 @@ export default function LandingNavbar() {
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="fixed top-0 z-50 w-full border-b border-gray-200/50 bg-white/80 backdrop-blur-lg dark:border-gray-800/50 dark:bg-gray-950/80"
+      className="fixed top-0 z-50 w-full glass-nav"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-20 items-center justify-between">
           <motion.div
             whileHover={{ scale: 1.05 }}
             className="flex items-center gap-2"
           >
-            <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-[var(--neon-blue)] to-[var(--neon-purple)] bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(112,66,248,0.5)]">
               NeuroStrat
             </Link>
           </motion.div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            <Link
-              href="#features"
-              className="text-sm font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
-            >
-              Características
-            </Link>
-            <Link
-              href="#ai-features"
-              className="text-sm font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
-            >
-              IA
-            </Link>
-            <Link
-              href="#pricing"
-              className="text-sm font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
-            >
-              Precios
-            </Link>
+            {['Características', 'IA', 'Precios'].map((item, index) => (
+              <Link
+                key={item}
+                href={`#${item.toLowerCase().replace(' ', '-')}`}
+                className="text-sm font-medium text-gray-300 transition-all hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]"
+              >
+                {item}
+              </Link>
+            ))}
             <Link
               href="/auth/login"
-              className="text-sm font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
+              className="text-sm font-medium text-gray-300 transition-all hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]"
             >
               Iniciar Sesión
             </Link>
             <motion.button
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(112, 66, 248, 0.5)" }}
               whileTap={{ scale: 0.95 }}
               onClick={() => router.push('/auth/register')}
-              className="rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:shadow-xl cursor-pointer"
+              className="rounded-lg bg-gradient-to-r from-[var(--neon-purple)] to-[var(--neon-blue)] px-6 py-2 text-sm font-bold text-white shadow-lg transition-all cursor-pointer border border-white/10"
             >
               Empieza Gratis
             </motion.button>
@@ -67,7 +58,7 @@ export default function LandingNavbar() {
           {/* Mobile menu button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-gray-700 dark:text-gray-300 cursor-pointer"
+            className="md:hidden p-2 text-gray-300 hover:text-white transition-colors cursor-pointer"
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -79,45 +70,36 @@ export default function LandingNavbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-t border-gray-200 dark:border-gray-800 py-4 space-y-4"
+            className="md:hidden border-t border-white/10 py-4 space-y-4 bg-[#030014]/95 backdrop-blur-xl"
           >
-            <Link
-              href="#features"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Características
-            </Link>
-            <Link
-              href="#ai-features"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              IA
-            </Link>
-            <Link
-              href="#pricing"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Precios
-            </Link>
+            {['Características', 'IA', 'Precios'].map((item) => (
+              <Link
+                key={item}
+                href={`#${item.toLowerCase().replace(' ', '-')}`}
+                onClick={() => setMobileMenuOpen(false)}
+                className="block text-sm font-medium text-gray-300 hover:text-white px-4"
+              >
+                {item}
+              </Link>
+            ))}
             <Link
               href="/auth/login"
               onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              className="block text-sm font-medium text-gray-300 hover:text-white px-4"
             >
               Iniciar Sesión
             </Link>
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false)
-                router.push('/auth/register')
-              }}
-              className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-2 text-sm font-semibold text-white cursor-pointer"
-            >
-              Empieza Gratis
-            </button>
+            <div className="px-4">
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false)
+                  router.push('/auth/register')
+                }}
+                className="w-full rounded-lg bg-gradient-to-r from-[var(--neon-purple)] to-[var(--neon-blue)] px-6 py-2 text-sm font-bold text-white cursor-pointer shadow-[0_0_15px_rgba(112,66,248,0.3)]"
+              >
+                Empieza Gratis
+              </button>
+            </div>
           </motion.div>
         )}
       </div>

@@ -1,12 +1,9 @@
-'use client'
-
 import { useState } from 'react'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
-import { MessageSquare, ArrowUp, ArrowDown, Pin, Lock } from 'lucide-react'
+import { MessageSquare, ArrowUp, Pin, Lock } from 'lucide-react'
 import { motion } from 'framer-motion'
 import VoteButton from './VoteButton'
-import { supabase } from '@/lib/supabaseClient'
 
 interface Profile {
   id: string
@@ -107,7 +104,7 @@ export default function ThreadCard({ post, currentUserId }: ThreadCardProps) {
           setUserVote(null)
         }
       }
-    } catch (error) {
+    } catch {
       // Revert on error
       setUserVote(previousVote)
       setUpvotes(previousUpvotes)
@@ -117,103 +114,84 @@ export default function ThreadCard({ post, currentUserId }: ThreadCardProps) {
 
   const score = upvotes - downvotes
   const profile = post.profiles
-  const preview = post.content.length > 200 ? post.content.substring(0, 200) + '...' : post.content
+  const preview = post.content.length > 300 ? post.content.substring(0, 300) + '...' : post.content
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg p-4 hover:border-[var(--accent)] transition-all ${
-        post.is_pinned ? 'ring-2 ring-amber-500/50' : ''
-      }`}
+      className={`bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg hover:border-[var(--accent)] transition-all flex overflow-hidden ${post.is_pinned ? 'ring-1 ring-amber-500/50' : ''
+        }`}
     >
-      <div className="flex gap-4">
-        {/* Vote Section */}
-        <div className="flex flex-col items-center gap-1">
-          <VoteButton
-            type="upvote"
-            active={userVote === 'upvote'}
-            onClick={() => handleVote('upvote')}
-            disabled={!currentUserId}
-          />
-          <span className={`text-sm font-semibold ${score >= 0 ? 'text-[var(--success)]' : 'text-[var(--danger)]'}`}>
-            {score}
+      {/* Vote Column */}
+      <div className="w-12 bg-[var(--background)]/50 flex flex-col items-center py-3 gap-1 border-r border-[var(--card-border)]">
+        <VoteButton
+          type="upvote"
+          active={userVote === 'upvote'}
+          onClick={() => handleVote('upvote')}
+          disabled={!currentUserId}
+        />
+        <span className={`text-sm font-bold ${userVote === 'upvote' ? 'text-[var(--accent)]' :
+          userVote === 'downvote' ? 'text-[var(--danger)]' :
+            'text-[var(--text-primary)]'
+          }`}>
+          {score}
+        </span>
+        <VoteButton
+          type="downvote"
+          active={userVote === 'downvote'}
+          onClick={() => handleVote('downvote')}
+          disabled={!currentUserId}
+        />
+      </div>
+
+      {/* Content Section */}
+      <div className="flex-1 p-3 min-w-0">
+        {/* Header: Author, Time, Category */}
+        <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] mb-2">
+          {post.is_pinned && (
+            <span className="flex items-center gap-1 text-amber-500 font-medium">
+              <Pin className="h-3 w-3" /> Pinned
+            </span>
+          )}
+          <span className={`px-2 py-0.5 rounded-full font-medium border ${categoryColors[post.category] || 'bg-gray-500/20 text-gray-400 border-gray-500/30'}`}>
+            {categoryLabels[post.category] || post.category}
           </span>
-          <VoteButton
-            type="downvote"
-            active={userVote === 'downvote'}
-            onClick={() => handleVote('downvote')}
-            disabled={!currentUserId}
-          />
+          <span>•</span>
+          <span>Posted by</span>
+          <Link
+            href={`/profile/${profile?.id || post.user_id}`}
+            className="hover:text-[var(--text-primary)] font-medium transition-colors"
+          >
+            u/{profile?.username || 'Anonymous'}
+          </Link>
+          <span>{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</span>
         </div>
 
-        {/* Content Section */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start gap-2 mb-2">
-            {post.is_pinned && (
-              <Pin className="h-4 w-4 text-amber-500 flex-shrink-0" />
-            )}
-            {post.is_locked && (
-              <Lock className="h-4 w-4 text-[var(--text-secondary)] flex-shrink-0" />
-            )}
-            <Link
-              href={`/community/thread/${post.id}`}
-              className="flex-1 hover:text-[var(--accent)] transition-colors"
-            >
-              <h3 className="text-lg font-semibold text-[var(--text-primary)] line-clamp-2">
-                {post.title}
-              </h3>
-            </Link>
-          </div>
-
-          <p className="text-sm text-[var(--text-secondary)] mb-3 line-clamp-2">
+        {/* Title & Content */}
+        <Link href={`/community/thread/${post.id}`} className="block group">
+          <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2 group-hover:text-[var(--accent)] transition-colors flex items-center gap-2">
+            {post.title}
+            {post.is_locked && <Lock className="h-4 w-4 text-[var(--text-secondary)]" />}
+          </h3>
+          <p className="text-sm text-[var(--text-secondary)] mb-4 line-clamp-3">
             {preview}
           </p>
+        </Link>
 
-          <div className="flex items-center gap-4 flex-wrap">
-            <span className={`px-2 py-1 rounded text-xs font-medium border ${categoryColors[post.category] || 'bg-gray-500/20 text-gray-400 border-gray-500/30'}`}>
-              {categoryLabels[post.category] || post.category}
-            </span>
-
-            <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-              {profile?.avatar_url ? (
-                <img
-                  src={profile.avatar_url}
-                  alt={profile.username}
-                  className="w-5 h-5 rounded-full"
-                />
-              ) : (
-                <div className="w-5 h-5 rounded-full bg-[var(--accent)] flex items-center justify-center text-xs text-white">
-                  {profile?.username?.charAt(0).toUpperCase() || 'U'}
-                </div>
-              )}
-              <Link
-                href={`/profile/${profile?.id || post.user_id}`}
-                className="hover:text-[var(--accent)] transition-colors"
-              >
-                {profile?.username || 'Anonymous'}
-              </Link>
-              {profile?.role === 'pro_trader' && (
-                <span className="px-1.5 py-0.5 bg-amber-500/20 text-amber-400 text-xs rounded">
-                  Pro
-                </span>
-              )}
-              {profile?.role === 'moderator' && (
-                <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 text-xs rounded">
-                  Mod
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-1 text-sm text-[var(--text-secondary)]">
-              <MessageSquare className="h-4 w-4" />
-              <span>{post.comments_count}</span>
-            </div>
-
-            <span className="text-xs text-[var(--text-secondary)]">
-              {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
-            </span>
-          </div>
+        {/* Footer Actions */}
+        <div className="flex items-center gap-4">
+          <Link
+            href={`/community/thread/${post.id}`}
+            className="flex items-center gap-2 px-2 py-1 rounded hover:bg-[var(--background)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-xs font-medium"
+          >
+            <MessageSquare className="h-4 w-4" />
+            {post.comments_count} Comments
+          </Link>
+          <button className="flex items-center gap-2 px-2 py-1 rounded hover:bg-[var(--background)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-xs font-medium">
+            <ArrowUp className="h-4 w-4 rotate-45" />
+            Share
+          </button>
         </div>
       </div>
     </motion.div>

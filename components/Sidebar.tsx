@@ -38,8 +38,9 @@ export default function Sidebar() {
       className="flex h-full w-64 flex-col bg-[var(--sidebar-bg)] text-[var(--sidebar-text)] border-r border-[var(--card-border)] shadow-xl"
     >
       <motion.div
-        className="flex h-16 items-center border-b border-[var(--card-border)] px-6"
+        className="flex h-16 items-center border-b border-[var(--card-border)] px-6 cursor-pointer"
         whileHover={{ scale: 1.02 }}
+        onClick={() => router.push('/')}
       >
         <h1 className="text-xl font-bold bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-400 bg-clip-text text-transparent animate-gradient">
           NeuroStrat

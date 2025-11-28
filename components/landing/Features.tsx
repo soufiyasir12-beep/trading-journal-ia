@@ -51,8 +51,8 @@ const features = [
 
 export default function Features() {
   return (
-    <section id="features" className="py-24 sm:py-32">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section id="features" className="py-24 sm:py-32 relative">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -60,10 +60,10 @@ export default function Features() {
           transition={{ duration: 0.5 }}
           className="text-center"
         >
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-white">
-            Todo lo que necesitas para mejorar
+          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            Todo lo que necesitas para <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--neon-blue)] to-[var(--neon-purple)]">mejorar</span>
           </h2>
-          <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
+          <p className="mt-4 text-lg text-gray-400">
             Herramientas profesionales diseñadas para traders serios
           </p>
         </motion.div>
@@ -76,16 +76,16 @@ export default function Features() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              whileHover={{ y: -5 }}
-              className="group relative rounded-2xl border border-gray-200 bg-white p-8 shadow-sm transition-all hover:shadow-xl dark:border-gray-800 dark:bg-gray-900"
+              whileHover={{ y: -5, boxShadow: "0 0 20px rgba(112, 66, 248, 0.2)" }}
+              className="glass-card p-8 rounded-2xl group hover:border-[var(--neon-purple)]/50 transition-all"
             >
-              <div className="mb-4 inline-flex rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 p-3">
+              <div className="mb-4 inline-flex rounded-lg bg-gradient-to-r from-[var(--neon-blue)] to-[var(--neon-purple)] p-3 group-hover:scale-110 transition-transform duration-300">
                 <feature.icon className="h-6 w-6 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-xl font-semibold text-white group-hover:text-[var(--neon-blue)] transition-colors">
                 {feature.title}
               </h3>
-              <p className="mt-2 text-gray-600 dark:text-gray-400">
+              <p className="mt-2 text-gray-400">
                 {feature.description}
               </p>
             </motion.div>

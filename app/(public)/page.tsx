@@ -11,9 +11,9 @@ import Navbar from '@/components/landing/Navbar'
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-gray-50 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+    <div className="min-h-screen bg-[#030014] overflow-hidden">
       <Navbar />
-      <main>
+      <main className="relative z-10">
         <Hero />
         <Features />
         <AIFeatures />

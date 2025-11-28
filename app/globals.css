@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #030014;
+  --foreground: #ffffff;
 }
 
 @theme inline {
@@ -13,6 +13,7 @@
 }
 
 .light {
+  /* Keeping light mode just in case, but focusing on dark for landing */
   --background: #ffffff;
   --foreground: #171717;
   --card-bg: #ffffff;
@@ -32,22 +33,27 @@
 }
 
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-  --card-bg: #1f2937;
-  --card-border: #374151;
-  --sidebar-bg: #030712;
-  --sidebar-text: #f9fafb;
-  --navbar-bg: #111827;
-  --navbar-border: #374151;
-  --text-primary: #f9fafb;
-  --text-secondary: #9ca3af;
-  --accent: #60a5fa;
-  --success: #34d399;
-  --danger: #f87171;
+  --background: #030014;
+  --foreground: #ffffff;
+  --card-bg: rgba(17, 25, 40, 0.75);
+  --card-border: rgba(255, 255, 255, 0.125);
+  --sidebar-bg: #030014;
+  --sidebar-text: #e2e8f0;
+  --navbar-bg: rgba(3, 0, 20, 0.5);
+  --navbar-border: rgba(255, 255, 255, 0.1);
+  --text-primary: #ffffff;
+  --text-secondary: #94a3b8;
+  --accent: #7042f88b;
+  --success: #00ff9d;
+  --danger: #ff0055;
   --warning: #fbbf24;
-  --profit-color: #34d399;
-  --loss-color: #f87171;
+  --profit-color: #00ff9d;
+  --loss-color: #ff0055;
+  
+  /* Neon Accents */
+  --neon-blue: #00f0ff;
+  --neon-purple: #7042f8;
+  --neon-pink: #ff00aa;
 }
 
 html {
@@ -59,12 +65,27 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
 }
 
 * {
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
+/* Glassmorphism Utilities */
+.glass-card {
+  background: rgba(17, 25, 40, 0.75);
+  backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.125);
+}
+
+.glass-nav {
+  background: rgba(3, 0, 20, 0.5);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Animations */
 @keyframes gradient {
   0%, 100% {
     background-position: 0% 50%;
@@ -77,6 +98,25 @@ body {
 .animate-gradient {
   background-size: 200% 200%;
   animation: gradient 3s ease infinite;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(112, 66, 248, 0.5); }
+  50% { box-shadow: 0 0 40px rgba(112, 66, 248, 0.8); }
+}
+
+.animate-glow {
+  animation: glow 3s ease-in-out infinite;
 }
 
 /* Smooth scrollbar */

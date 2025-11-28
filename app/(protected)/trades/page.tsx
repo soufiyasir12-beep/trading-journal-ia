@@ -41,6 +41,65 @@ export default function TradesPage() {
   const [accountCapital, setAccountCapital] = useState<number | null>(null)
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null)
   const [isTradeDetailOpen, setIsTradeDetailOpen] = useState(false)
+  const [activeStartDate, setActiveStartDate] = useState<Date>(new Date())
+
+  const getWeeksInMonth = (date: Date) => {
+    const start = startOfMonth(date)
+    const end = endOfMonth(date)
+    const weeks = []
+
+    let current = startOfWeek(start, { weekStartsOn: 1 })
+
+    // Ensure we cover the entire month, matching calendar view roughly
+    while (current <= end) {
+      weeks.push({
+        start: new Date(current), // Clone to avoid reference mutation
+        end: endOfWeek(current, { weekStartsOn: 1 })
+      })
+      // setDate mutates the object, so we must be careful. 
+      // Since we cloned above, mutating 'current' here is fine for the next iteration loop,
+      // but to be safe and clean, let's create a new object for the next iteration.
+      const nextWeek = new Date(current)
+      nextWeek.setDate(current.getDate() + 7)
+      current = nextWeek
+    }
+
+    return weeks
+  }
+
+  const getWeeklySummary = (weekStart: Date, weekEnd: Date) => {
+    const weekTrades = trades.filter(t => {
+      // Parse YYYY-MM-DD string manually to ensure it's treated as local date
+      // This avoids timezone issues where '2023-01-01' becomes '2022-12-31T23:00:00'
+      const [year, month, day] = t.trade_date.split('-').map(Number)
+      const tradeDate = new Date(year, month - 1, day)
+      tradeDate.setHours(0, 0, 0, 0)
+
+      const start = new Date(weekStart)
+      start.setHours(0, 0, 0, 0)
+
+      const end = new Date(weekEnd)
+      end.setHours(23, 59, 59, 999)
+
+      return tradeDate >= start && tradeDate <= end
+    })
+
+    const total = weekTrades.reduce((sum, trade) => {
+      const amount = resultType === 'money'
+        ? convertResult(trade, 'money')
+        : convertResult(trade, 'percentage')
+
+      if (trade.result === 'win') return sum + amount
+      if (trade.result === 'loss') return sum - Math.abs(amount)
+      return sum
+    }, 0)
+
+    return {
+      total,
+      count: weekTrades.length,
+      daysTraded: new Set(weekTrades.map(t => t.trade_date)).size
+    }
+  }
 
   const [formData, setFormData] = useState<Trade>({
     pair: '',
@@ -233,9 +292,10 @@ export default function TradesPage() {
         entry_time: '',
         exit_time: '',
       })
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error saving trade:', error)
-      alert(error.message || 'Error al guardar el trade. Por favor verifica los datos e intenta nuevamente.')
+      const message = error instanceof Error ? error.message : 'Error al guardar el trade'
+      alert(message || 'Error al guardar el trade. Por favor verifica los datos e intenta nuevamente.')
     } finally {
       setSaving(false)
     }
@@ -267,9 +327,10 @@ export default function TradesPage() {
         const dayTradesList = updatedTrades.filter(t => t.trade_date === dateStr)
         setDayTrades(dayTradesList)
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error deleting trade:', error)
-      alert(error.message || 'Error al eliminar el trade. Por favor intenta nuevamente.')
+      const message = error instanceof Error ? error.message : 'Error al eliminar el trade'
+      alert(message || 'Error al eliminar el trade. Por favor intenta nuevamente.')
     }
   }
 
@@ -422,8 +483,8 @@ export default function TradesPage() {
                             saveSettings()
                           }}
                           className={`flex-1 px-3 py-2 rounded-lg transition-all cursor-pointer ${resultType === 'percentage'
-                              ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-white'
-                              : 'bg-[var(--background)] text-[var(--text-primary)]'
+                            ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-white'
+                            : 'bg-[var(--background)] text-[var(--text-primary)]'
                             }`}
                         >
                           <Percent className="h-4 w-4 inline mr-1" />
@@ -440,8 +501,8 @@ export default function TradesPage() {
                           }}
                           disabled={!accountCapital || accountCapital <= 0}
                           className={`flex-1 px-3 py-2 rounded-lg transition-all cursor-pointer ${resultType === 'money'
-                              ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-white'
-                              : 'bg-[var(--background)] text-[var(--text-primary)]'
+                            ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-white'
+                            : 'bg-[var(--background)] text-[var(--text-primary)]'
                             } ${(!accountCapital || accountCapital <= 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                           <DollarSign className="h-4 w-4 inline mr-1" />
@@ -528,12 +589,13 @@ export default function TradesPage() {
         </div>
       </div>
 
-      {/* Calendario ocupando la mayor parte de la pantalla */}
-      <div className="flex-1 min-h-0">
+      {/* Contenedor Principal: Calendario + Sidebar */}
+      <div className="flex-1 min-h-0 flex gap-6">
+        {/* Calendario */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="h-full rounded-xl bg-[var(--card-bg)] p-6 shadow-lg border border-[var(--card-border)]"
+          className="flex-[3] h-full rounded-xl bg-[var(--card-bg)] p-6 shadow-lg border border-[var(--card-border)] overflow-hidden flex flex-col"
         >
           <Calendar
             onChange={(value) => {
@@ -542,62 +604,143 @@ export default function TradesPage() {
               }
             }}
             value={selectedDate}
+            onActiveStartDateChange={({ activeStartDate }) => {
+              if (activeStartDate) setActiveStartDate(activeStartDate)
+            }}
             className="w-full h-full border-0 bg-transparent"
             tileClassName={getDayClassName}
             tileContent={tileContent}
             locale="es"
             formatShortWeekday={(locale, date) => format(date, 'EEE', { locale: es }).charAt(0)}
           />
-          <style jsx global>{`
-            .react-calendar {
-              background: transparent;
-              border: none;
-              font-family: inherit;
-              width: 100%;
-              height: 100%;
-            }
-            .react-calendar__navigation {
-              margin-bottom: 1rem;
-            }
-            .react-calendar__month-view__weekdays {
-              margin-bottom: 0.5rem;
-            }
-            .react-calendar__tile {
-              padding: 1rem;
-              border-radius: 8px;
-              transition: all 0.2s;
-              min-height: 80px;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: center;
-            }
-            .react-calendar__tile:hover {
-              background: linear-gradient(135deg, #f59e0b 0%, #eab308 100%) !important;
-              color: white;
-              transform: scale(1.05);
-            }
-            .react-calendar__tile--active {
-              background: linear-gradient(135deg, #f59e0b 0%, #eab308 100%) !important;
-              color: white;
-            }
-            .react-calendar__tile--now {
-              background: rgba(245, 158, 11, 0.2) !important;
-            }
-            .custom-day {
-              font-weight: bold;
-            }
-            .profit-day {
-              background-color: ${profitColor}20 !important;
-              border: 2px solid ${profitColor} !important;
-            }
-            .loss-day {
-              background-color: ${lossColor}20 !important;
-              border: 2px solid ${lossColor} !important;
-            }
-          `}</style>
+        </motion.div>
+
+        {/* Sidebar de Resultados Semanales */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="flex-1 h-full rounded-xl bg-[var(--card-bg)] p-4 shadow-lg border border-[var(--card-border)] overflow-y-auto"
+        >
+          <h3 className="text-lg font-bold text-[var(--text-primary)] mb-4 sticky top-0 bg-[var(--card-bg)] pb-2 border-b border-[var(--card-border)]">
+            Resumen Semanal
+          </h3>
+          <div className="space-y-4">
+            {getWeeksInMonth(activeStartDate).map((week, index) => {
+              const summary = getWeeklySummary(week.start, week.end)
+              const isProfit = summary.total > 0
+              return (
+                <div key={index} className="p-4 rounded-lg bg-[var(--background)] border border-[var(--card-border)]">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium text-[var(--text-secondary)]">Semana {index + 1}</span>
+                    <span className="text-xs text-[var(--text-secondary)] opacity-75">
+                      {format(week.start, 'd MMM')} - {format(week.end, 'd MMM')}
+                    </span>
+                  </div>
+                  <div className={`text-2xl font-bold ${isProfit ? 'text-[var(--profit-color)]' : summary.total < 0 ? 'text-[var(--loss-color)]' : 'text-[var(--text-primary)]'}`}>
+                    {resultType === 'money' ? '$' : ''}{summary.total > 0 ? '+' : ''}{summary.total.toFixed(2)}{resultType === 'percentage' ? '%' : ''}
+                  </div>
+                  <div className="flex justify-between mt-2 text-xs text-[var(--text-secondary)]">
+                    <span>{summary.count} trades</span>
+                    <span className="bg-[var(--card-border)] px-2 py-0.5 rounded-full">{summary.daysTraded} días op.</span>
+                  </div>
+                </div>
+              )
+            })}
+
+            {/* Resumen Mensual */}
+            <div className="mt-8 pt-4 border-t border-[var(--card-border)]">
+              <h4 className="text-sm font-medium text-[var(--text-secondary)] mb-2">Total Mensual</h4>
+              {(() => {
+                const monthly = calculateMonthlyResult(activeStartDate)
+                const isProfit = monthly > 0
+                return (
+                  <div className={`text-3xl font-bold ${isProfit ? 'text-[var(--profit-color)]' : monthly < 0 ? 'text-[var(--loss-color)]' : 'text-[var(--text-primary)]'}`}>
+                    {resultType === 'money' ? '$' : ''}{monthly > 0 ? '+' : ''}{monthly.toFixed(2)}{resultType === 'percentage' ? '%' : ''}
+                  </div>
+                )
+              })()}
+            </div>
+          </div>
         </motion.div>
       </div>
+
+      <style jsx global>{`
+        .react-calendar {
+          background: transparent;
+          border: none;
+          font-family: inherit;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+        }
+        .react-calendar__navigation {
+          margin-bottom: 1rem;
+          flex-shrink: 0;
+        }
+        .react-calendar__viewContainer {
+          flex: 1;
+          min-height: 0;
+        }
+        .react-calendar__month-view {
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+        }
+        .react-calendar__month-view > div {
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+        }
+        .react-calendar__month-view > div > div {
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+        }
+        .react-calendar__month-view__days {
+          flex: 1 !important;
+          height: auto !important;
+        }
+        .react-calendar__month-view__weekdays {
+          margin-bottom: 0.5rem;
+          flex-shrink: 0;
+        }
+        .react-calendar__tile {
+          padding: 0.5rem;
+          border-radius: 8px;
+          transition: all 0.2s;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: auto !important;
+          flex: 1;
+        }
+        .react-calendar__tile:hover {
+          background: linear-gradient(135deg, #f59e0b 0%, #eab308 100%) !important;
+          color: white;
+          transform: scale(1.05);
+          z-index: 10;
+        }
+        .react-calendar__tile--active {
+          background: linear-gradient(135deg, #f59e0b 0%, #eab308 100%) !important;
+          color: white;
+        }
+        .react-calendar__tile--now {
+          background: rgba(245, 158, 11, 0.2) !important;
+        }
+        .custom-day {
+          font-weight: bold;
+        }
+        .profit-day {
+          background-color: ${profitColor}20 !important;
+          border: 2px solid ${profitColor} !important;
+        }
+        .loss-day {
+          background-color: ${lossColor}20 !important;
+          border: 2px solid ${lossColor} !important;
+        }
+      `}</style>
 
       {/* Modal para agregar/editar trade */}
       <AnimatePresence mode="wait">
@@ -835,10 +978,10 @@ export default function TradesPage() {
                                 <div className="flex items-center gap-3">
                                   <span
                                     className={`font-semibold ${trade.result === 'win'
-                                        ? 'text-green-500'
-                                        : trade.result === 'loss'
-                                          ? 'text-red-500'
-                                          : 'text-yellow-500'
+                                      ? 'text-green-500'
+                                      : trade.result === 'loss'
+                                        ? 'text-red-500'
+                                        : 'text-yellow-500'
                                       }`}
                                   >
                                     {trade.result === 'win' ? '+' : trade.result === 'loss' ? '-' : ''}
@@ -1014,10 +1157,10 @@ export default function TradesPage() {
                         Resultado
                       </label>
                       <p className={`font-semibold ${selectedTrade.result === 'win'
-                          ? 'text-green-500'
-                          : selectedTrade.result === 'loss'
-                            ? 'text-red-500'
-                            : 'text-yellow-500'
+                        ? 'text-green-500'
+                        : selectedTrade.result === 'loss'
+                          ? 'text-red-500'
+                          : 'text-yellow-500'
                         }`}>
                         {selectedTrade.result === 'win' ? 'Ganancia' : selectedTrade.result === 'loss' ? 'Pérdida' : 'Breakeven'}
                       </p>
@@ -1027,10 +1170,10 @@ export default function TradesPage() {
                         Resultado ({resultType === 'money' ? 'USD' : '%'})
                       </label>
                       <p className={`font-semibold ${selectedTrade.result === 'win'
-                          ? 'text-green-500'
-                          : selectedTrade.result === 'loss'
-                            ? 'text-red-500'
-                            : 'text-yellow-500'
+                        ? 'text-green-500'
+                        : selectedTrade.result === 'loss'
+                          ? 'text-red-500'
+                          : 'text-yellow-500'
                         }`}>
                         {selectedTrade.result_amount
                           ? resultType === 'money'
