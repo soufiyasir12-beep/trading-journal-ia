@@ -420,7 +420,7 @@ export default function TradesPage() {
       {/* Header con título y configuración */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-500 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 bg-clip-text text-transparent">
             Registro de Trades
           </h1>
           <p className="mt-2 text-sm text-[var(--text-secondary)]">
@@ -436,7 +436,7 @@ export default function TradesPage() {
               setSelectedDate(new Date())
               setIsModalOpen(true)
             }}
-            className="px-4 py-2 bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-500 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all cursor-pointer"
+            className="px-4 py-2 bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-lg font-medium shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 transition-all cursor-pointer"
           >
             Nuevo Trade
           </motion.button>
@@ -619,9 +619,9 @@ export default function TradesPage() {
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="flex-1 h-full rounded-xl bg-[var(--card-bg)] p-4 shadow-lg border border-[var(--card-border)] overflow-y-auto"
+          className="flex-1 h-full rounded-xl bg-[var(--card-bg)] p-4 shadow-lg border border-[var(--card-border)] overflow-y-auto backdrop-blur-sm"
         >
-          <h3 className="text-lg font-bold text-[var(--text-primary)] mb-4 sticky top-0 bg-[var(--card-bg)] pb-2 border-b border-[var(--card-border)]">
+          <h3 className="text-lg font-bold text-[var(--text-primary)] mb-4 sticky top-0 bg-[var(--card-bg)]/95 backdrop-blur-sm pb-2 border-b border-[var(--card-border)] z-10">
             Resumen Semanal
           </h3>
           <div className="space-y-4">
@@ -629,7 +629,7 @@ export default function TradesPage() {
               const summary = getWeeklySummary(week.start, week.end)
               const isProfit = summary.total > 0
               return (
-                <div key={index} className="p-4 rounded-lg bg-[var(--background)] border border-[var(--card-border)]">
+                <div key={index} className="p-4 rounded-lg bg-[var(--background)]/50 border border-[var(--card-border)] hover:border-[var(--accent)]/30 transition-colors">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-medium text-[var(--text-secondary)]">Semana {index + 1}</span>
                     <span className="text-xs text-[var(--text-secondary)] opacity-75">

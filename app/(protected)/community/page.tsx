@@ -102,7 +102,7 @@ export default function CommunityPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-2">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 bg-clip-text text-transparent mb-2">
           NeuroStrat Community
         </h1>
         <p className="text-[var(--text-secondary)]">
@@ -116,7 +116,7 @@ export default function CommunityPage() {
           {/* Create Post Input Trigger */}
           {currentUser && (
             <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg p-4 flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-[var(--accent)] flex items-center justify-center text-white font-bold">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center text-white font-bold shadow-lg shadow-amber-500/20">
                 {currentUser.email?.charAt(0).toUpperCase()}
               </div>
               <input
@@ -209,7 +209,7 @@ export default function CommunityPage() {
             </div>
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="w-full mt-4 bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-white font-bold py-2 px-4 rounded-full transition-all shadow-lg shadow-[var(--accent)]/20"
+              className="w-full mt-4 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-bold py-2 px-4 rounded-full transition-all shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 transform hover:scale-105"
             >
               Crear Publicación
             </button>

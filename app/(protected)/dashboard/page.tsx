@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import {
   TrendingUp,
@@ -10,14 +10,27 @@ import {
   Activity,
   Sparkles,
 } from 'lucide-react'
-import AIAnalysisCard from '@/components/AIAnalysisCard'
+import Link from 'next/link'
+import DashboardAIAnalysis from '@/components/DashboardAIAnalysis'
+import { supabase } from '@/lib/supabaseClient'
+
+interface Trade {
+  id: string
+  pair: string
+  setup: string
+  trade_date: string
+  result: 'win' | 'loss' | 'be'
+  result_amount: string
+  result_type?: 'percentage' | 'currency'
+  risk_reward: string
+}
 
 interface TradeStats {
   totalTrades: number
   winrate: number
   totalProfit: number
   avgRR: number
-  recentTrades: any[]
+  recentTrades: Trade[]
 }
 
 export default function DashboardPage() {
@@ -29,34 +42,56 @@ export default function DashboardPage() {
     recentTrades: [],
   })
   const [loading, setLoading] = useState(true)
+  const [accountCapital, setAccountCapital] = useState<number>(0)
 
-  useEffect(() => {
-    fetchStats()
-  }, [])
-
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const response = await fetch('/api/trades')
       const result = await response.json()
       const data = result?.data || []
 
+      // Fetch user profile for account capital
+      const { data: { user } } = await supabase.auth.getUser()
+      let capital = 0
+
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('account_capital')
+          .eq('id', user.id)
+          .single()
+
+        if (profile?.account_capital) {
+          capital = parseFloat(profile.account_capital)
+          setAccountCapital(capital)
+        }
+      }
+
       if (data && data.length > 0) {
-        const wins = data.filter((t: any) => t.result === 'win').length
+        const wins = data.filter((t: Trade) => t.result === 'win').length
         const totalTrades = data.length
         const winrate = totalTrades > 0 ? (wins / totalTrades) * 100 : 0
 
-        const totalProfit = data.reduce((sum: number, t: any) => {
+        const totalProfit = data.reduce((sum: number, t: Trade) => {
           const amount = parseFloat(t.result_amount) || 0
-          if (t.result === 'win') return sum + amount
-          if (t.result === 'loss') return sum - Math.abs(amount)
+          // Calculate profit based on result type if needed, but for total profit we might need consistent data.
+          // For now, assuming result_amount is consistent or we just sum it up. 
+          // If we want to be precise, we should convert everything to dollars here too.
+          let dollarAmount = amount
+          if ((!t.result_type || t.result_type === 'percentage') && capital > 0) {
+            dollarAmount = (amount * capital) / 100
+          }
+
+          if (t.result === 'win') return sum + dollarAmount
+          if (t.result === 'loss') return sum - Math.abs(dollarAmount)
           return sum
         }, 0)
 
         const avgRR = totalTrades > 0
-          ? data.reduce((sum: number, t: any) => {
-              const rr = parseFloat(t.risk_reward) || 0
-              return sum + rr
-            }, 0) / totalTrades
+          ? data.reduce((sum: number, t: Trade) => {
+            const rr = parseFloat(t.risk_reward) || 0
+            return sum + rr
+          }, 0) / totalTrades
           : 0
 
         setStats({
@@ -80,36 +115,52 @@ export default function DashboardPage() {
       console.error('Error fetching stats:', error)
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    fetchStats()
+  }, [fetchStats])
 
   const metrics = [
     {
       name: 'Total Trades',
       value: stats.totalTrades,
-      icon: Activity,
-      color: 'from-amber-500 to-yellow-500',
-      change: '+0%',
+      icon: TrendingUp,
+      gradient: 'bg-gradient-to-b from-emerald-900/80 to-emerald-950/90',
+      border: 'border-emerald-500/20',
+      text: 'text-emerald-400',
+      chartColor: '#10b981',
+      shadow: 'shadow-emerald-500/10'
     },
     {
       name: 'Winrate',
       value: `${stats.winrate.toFixed(1)}%`,
       icon: Target,
-      color: 'from-green-500 to-emerald-500',
-      change: stats.winrate > 50 ? '+5%' : '-2%',
+      gradient: 'bg-gradient-to-b from-purple-900/80 to-purple-950/90',
+      border: 'border-purple-500/20',
+      text: 'text-purple-400',
+      chartColor: '#a855f7',
+      shadow: 'shadow-purple-500/10'
     },
     {
       name: 'Profit Total',
       value: `$${stats.totalProfit.toFixed(2)}`,
       icon: DollarSign,
-      color: 'from-yellow-500 to-amber-400',
-      change: stats.totalProfit > 0 ? '+12%' : '-5%',
+      gradient: 'bg-gradient-to-b from-amber-900/80 to-amber-950/90',
+      border: 'border-amber-500/20',
+      text: 'text-amber-400',
+      chartColor: '#fbbf24',
+      shadow: 'shadow-amber-500/10'
     },
     {
       name: 'R:R Promedio',
       value: stats.avgRR.toFixed(2),
-      icon: TrendingUp,
-      color: 'from-orange-500 to-red-500',
-      change: stats.avgRR > 1 ? '+0.3' : '-0.2',
+      icon: Activity,
+      gradient: 'bg-gradient-to-b from-rose-900/80 to-rose-950/90',
+      border: 'border-rose-500/20',
+      text: 'text-rose-400',
+      chartColor: '#f43f5e',
+      shadow: 'shadow-rose-500/10'
     },
   ]
 
@@ -141,7 +192,7 @@ export default function DashboardPage() {
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: 'linear' as const }}
-          className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full"
+          className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full"
         />
       </div>
     )
@@ -152,152 +203,160 @@ export default function DashboardPage() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-6"
+      className="space-y-8 p-4"
     >
-      <motion.div variants={itemVariants}>
-        <div className="flex items-center gap-3">
-          <motion.div
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: 2, repeat: Infinity, type: 'tween' as const }}
-          >
-            <Sparkles className="h-8 w-8 text-amber-500" />
-          </motion.div>
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-500 bg-clip-text text-transparent">
-              Dashboard
-            </h1>
-            <p className="mt-2 text-sm text-[var(--text-secondary)]">
-              Bienvenido a NeuroStrat
-            </p>
-          </div>
-        </div>
-      </motion.div>
+      {/* Header */}
+      <div className="flex flex-col gap-1 mb-4">
+        <h1 className="text-3xl font-bold text-white tracking-tight">
+          Dashboard
+        </h1>
+        <p className="text-gray-400 text-sm">
+          Bienvenido a NeuroStrat, tu journal de trading con IA.
+        </p>
+      </div>
 
+      {/* Stats Grid */}
       <motion.div
         variants={containerVariants}
         className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
       >
-        {metrics.map((metric, index) => (
+        {metrics.map((metric) => (
           <motion.div
             key={metric.name}
             variants={itemVariants}
-            whileHover={{ scale: 1.05, y: -5 }}
-            className="group relative overflow-hidden rounded-xl bg-[var(--card-bg)] p-6 shadow-lg border border-[var(--card-border)] hover:shadow-2xl transition-all"
+            whileHover={{ scale: 1.02, translateY: -5 }}
+            className={`relative overflow-hidden rounded-3xl ${metric.gradient} p-6 border ${metric.border} shadow-lg backdrop-blur-md group`}
+            style={{
+              boxShadow: `0 0 20px -5px ${metric.chartColor}20`
+            }}
           >
-            <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-10 transition-opacity" />
-            <div className="relative">
-              <div className="flex items-center justify-between mb-4">
-                <div
-                  className={`p-3 rounded-lg bg-gradient-to-br ${metric.color} shadow-lg`}
-                >
-                  <metric.icon className="h-6 w-6 text-white" />
-                </div>
-                {metric.change.startsWith('+') ? (
-                  <TrendingUp className="h-5 w-5 text-green-500" />
-                ) : (
-                  <TrendingDown className="h-5 w-5 text-red-500" />
-                )}
+            <div className="flex justify-between items-start mb-6">
+              <div className={`p-2 rounded-xl bg-white/5 backdrop-blur-sm border border-white/5`}>
+                <metric.icon className="h-6 w-6 text-white" />
               </div>
-              <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">
+              <span className="text-xs font-semibold text-white/60 tracking-wider uppercase">
                 {metric.name}
-              </p>
-              <p className="text-3xl font-bold text-[var(--text-primary)]">
-                {metric.value}
-              </p>
-              <div className="mt-4 flex items-center gap-2">
-                <span
-                  className={`text-sm font-medium ${
-                    metric.change.startsWith('+')
-                      ? 'text-green-500'
-                      : 'text-red-500'
-                  }`}
-                >
-                  {metric.change}
-                </span>
-                <span className="text-xs text-[var(--text-secondary)]">
-                  vs mes anterior
-                </span>
+              </span>
+            </div>
+
+            <div className="flex items-end justify-between relative z-10">
+              <div>
+                <h3 className="text-4xl font-bold text-white mb-2 tracking-tight">
+                  {metric.value}
+                </h3>
+                <p className={`text-xs font-medium ${metric.text} flex items-center gap-1`}>
+                  {/* Subtext removed as requested */}
+                </p>
+              </div>
+
+              {/* SVG Sparkline */}
+              <div className="w-24 h-12 opacity-80">
+                <svg width="100%" height="100%" viewBox="0 0 100 50" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id={`gradient-${metric.name}`} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={metric.chartColor} stopOpacity="0.5" />
+                      <stop offset="100%" stopColor={metric.chartColor} stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  <path
+                    d="M0,50 L0,30 Q25,10 50,35 T100,20 L100,50 Z"
+                    fill={`url(#gradient-${metric.name})`}
+                    opacity="0.3"
+                  />
+                  <path
+                    d="M0,30 Q25,10 50,35 T100,20"
+                    fill="none"
+                    stroke={metric.chartColor}
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
               </div>
             </div>
           </motion.div>
         ))}
       </motion.div>
 
+      {/* Recent Activity */}
       <motion.div
         variants={itemVariants}
-        className="rounded-xl bg-[var(--card-bg)] p-6 shadow-lg border border-[var(--card-border)]"
+        className="rounded-3xl bg-[#0a0e17]/80 border border-white/5 overflow-hidden backdrop-blur-xl shadow-2xl"
       >
-        <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">
-          Actividad Reciente
-        </h2>
-        {stats.recentTrades.length > 0 ? (
-          <div className="space-y-3">
-            {stats.recentTrades.map((trade, index) => (
-              <motion.div
-                key={trade.id}
-                initial={{ x: -20, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: index * 0.1, type: 'tween' as const }}
-                className="flex items-center justify-between p-4 rounded-lg bg-[var(--background)] border border-[var(--card-border)] hover:border-amber-500 transition-colors"
-              >
-                <div className="flex items-center gap-4">
-                  <div
-                    className={`w-3 h-3 rounded-full ${
-                      trade.result === 'win'
-                        ? 'bg-green-500'
-                        : trade.result === 'loss'
-                        ? 'bg-red-500'
-                        : 'bg-yellow-500'
-                    }`}
-                  />
-                  <div>
-                    <p className="font-medium text-[var(--text-primary)]">
-                      {trade.pair} - {trade.setup}
-                    </p>
-                    <p className="text-sm text-[var(--text-secondary)]">
-                      {new Date(trade.trade_date).toLocaleDateString('es-ES')}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p
-                    className={`font-semibold ${
-                      trade.result === 'win'
-                        ? 'text-green-500'
-                        : trade.result === 'loss'
-                        ? 'text-red-500'
-                        : 'text-yellow-500'
-                    }`}
+        <div className="p-6 border-b border-white/5 flex justify-between items-center">
+          <h2 className="text-lg font-bold text-white">
+            Actividad Reciente
+          </h2>
+        </div>
+
+        <div className="p-2">
+          {stats.recentTrades.length > 0 ? (
+            <div className="space-y-1">
+              {stats.recentTrades.map((trade, index) => (
+                <Link
+                  key={trade.id}
+                  href={`/trades/${trade.id}`}
+                  passHref
+                >
+                  <motion.div
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="flex items-center justify-between p-4 rounded-xl hover:bg-white/5 transition-all group cursor-pointer border border-transparent hover:border-white/5"
                   >
-                    {trade.result === 'win'
-                      ? '+'
-                      : trade.result === 'loss'
-                      ? '-'
-                      : ''}
-                    {trade.result_amount
-                      ? `$${Math.abs(parseFloat(trade.result_amount.toString()) || 0).toFixed(2)}`
-                      : 'Breakeven'}
-                  </p>
-                  <p className="text-sm text-[var(--text-secondary)]">
-                    R:R {trade.risk_reward || 'N/A'}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <Activity className="h-12 w-12 text-[var(--text-secondary)] mx-auto mb-4 opacity-50" />
-            <p className="text-[var(--text-secondary)]">
-              No hay actividad reciente. Comienza registrando tus trades.
-            </p>
-          </div>
-        )}
+                    <div className="flex items-center gap-4">
+                      <div className={`w-1 h-8 rounded-full ${trade.result === 'win' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' :
+                        trade.result === 'loss' ? 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]' : 'bg-amber-500'
+                        }`} />
+                      <div>
+                        <p className="font-bold text-white text-sm">
+                          {trade.pair} <span className="text-gray-500 font-normal mx-2">|</span> {trade.setup}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-sm text-gray-400 font-mono">
+                      {new Date(trade.trade_date).toLocaleDateString('es-ES')}
+                    </div>
+
+                    <div className="flex items-center gap-6">
+                      <div className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider ${trade.result === 'win' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                        trade.result === 'loss' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                        }`}>
+                        {trade.result === 'win' ? 'WIN' : trade.result === 'loss' ? 'LOSS' : 'BE'}
+                      </div>
+
+                      <div className="text-right min-w-[80px]">
+                        <p className="text-sm font-mono text-gray-400">
+                          <span className={`font-bold ${trade.result === 'win' ? 'text-emerald-400' :
+                            trade.result === 'loss' ? 'text-rose-400' : 'text-amber-400'
+                            }`}>
+                            {(() => {
+                              const amount = parseFloat(trade.result_amount) || 0
+                              if ((!trade.result_type || trade.result_type === 'percentage') && accountCapital > 0) {
+                                const dollarAmount = (amount * accountCapital) / 100
+                                return `${trade.result === 'loss' ? '-' : '+'}$${Math.abs(dollarAmount).toFixed(2)}`
+                              }
+                              return `${trade.result === 'loss' ? '-' : '+'}$${Math.abs(amount).toFixed(2)}`
+                            })()}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-gray-500">
+              No hay actividad reciente
+            </div>
+          )}
+        </div>
       </motion.div>
 
-      <motion.div variants={itemVariants}>
-        <AIAnalysisCard />
-      </motion.div>
+      {/* AI Analysis Banner */}
+      <DashboardAIAnalysis />
     </motion.div>
   )
 }

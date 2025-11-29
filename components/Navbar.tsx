@@ -21,11 +21,11 @@ export default function Navbar() {
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: 'spring' as const, stiffness: 100, damping: 20 }}
-      className="flex h-16 items-center justify-between border-b border-[var(--navbar-border)] bg-[var(--navbar-bg)] px-6 shadow-sm"
+      className="flex h-16 items-center justify-between border-b border-[var(--navbar-border)] bg-[var(--navbar-bg)]/80 backdrop-blur-md px-6 shadow-sm sticky top-0 z-40"
     >
       <div className="flex items-center gap-4">
-        <motion.h2 
-          className="text-lg font-semibold text-[var(--text-primary)]"
+        <motion.h2
+          className="text-xl font-bold bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 bg-clip-text text-transparent"
           whileHover={{ scale: 1.05 }}
         >
           NeuroStrat
@@ -38,10 +38,10 @@ export default function Navbar() {
           onClick={handleLogout}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-red-600 to-red-700 px-4 py-2 text-sm font-medium text-white transition-all hover:shadow-lg hover:shadow-red-500/50 cursor-pointer"
+          className="flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 transition-all hover:bg-red-500/20 hover:border-red-500/50 cursor-pointer"
         >
           <LogOut className="h-4 w-4" />
-          Cerrar Sesión
+          <span className="hidden sm:inline">Cerrar Sesión</span>
         </motion.button>
       </div>
     </motion.div>

@@ -152,7 +152,7 @@ export default function AnalysisPage() {
       : 0
 
     // Balance acumulado
-    const sortedTrades = [...trades].sort((a, b) => 
+    const sortedTrades = [...trades].sort((a, b) =>
       new Date(a.trade_date).getTime() - new Date(b.trade_date).getTime()
     )
     let balance = 0
@@ -223,30 +223,38 @@ export default function AnalysisPage() {
       name: 'Winrate',
       value: `${analytics.winrate.toFixed(1)}%`,
       icon: Target,
-      color: 'from-green-500 to-emerald-500',
+      gradient: 'from-emerald-900/50 to-emerald-800/30',
+      border: 'border-emerald-500/30',
+      text: 'text-emerald-400',
       change: analytics.winrate > 50 ? '+5%' : '-2%',
     },
     {
       name: 'R:R Promedio',
       value: analytics.avgRR.toFixed(2),
       icon: TrendingUp,
-      color: 'from-amber-500 to-yellow-500',
+      gradient: 'from-purple-900/50 to-purple-800/30',
+      border: 'border-purple-500/30',
+      text: 'text-purple-400',
       change: analytics.avgRR > 1 ? '+0.3' : '-0.2',
     },
     {
       name: 'Total Trades',
       value: analytics.totalTrades,
       icon: Activity,
-      color: 'from-yellow-500 to-amber-400',
+      gradient: 'from-amber-900/50 to-amber-800/30',
+      border: 'border-amber-500/30',
+      text: 'text-amber-400',
       change: '+12',
     },
     {
       name: 'Profit Total',
-      value: resultType === 'money' 
+      value: resultType === 'money'
         ? `$${analytics.totalProfit.toFixed(2)}`
         : `${analytics.totalProfit > 0 ? '+' : ''}${analytics.totalProfit.toFixed(2)}%`,
       icon: DollarSign,
-      color: 'from-orange-500 to-red-500',
+      gradient: 'from-red-900/50 to-red-800/30',
+      border: 'border-red-500/30',
+      text: 'text-red-400',
       change: analytics.totalProfit > 0 ? '+12%' : '-5%',
     },
   ]
@@ -272,7 +280,7 @@ export default function AnalysisPage() {
       className="space-y-6"
     >
       <div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-500 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 bg-clip-text text-transparent">
           Analíticas
         </h1>
         <p className="mt-2 text-sm text-[var(--text-secondary)]">
@@ -287,24 +295,25 @@ export default function AnalysisPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1, type: 'tween' as const }}
-            whileHover={{ scale: 1.05, y: -5 }}
-            className="group relative overflow-hidden rounded-xl bg-[var(--card-bg)] p-6 shadow-lg border border-[var(--card-border)] hover:shadow-2xl transition-all"
+            whileHover={{ scale: 1.02 }}
+            className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${metric.gradient} p-6 border ${metric.border} shadow-lg`}
           >
-            <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-10 transition-opacity" />
-            <div className="relative">
-              <div className="flex items-center justify-between mb-4">
-                <div
-                  className={`p-3 rounded-lg bg-gradient-to-br ${metric.color} shadow-lg`}
-                >
-                  <metric.icon className="h-6 w-6 text-white" />
-                </div>
+            <div className="flex justify-between items-start mb-4">
+              <div className={`p-2 rounded-lg bg-white/5`}>
+                <metric.icon className={`h-6 w-6 ${metric.text}`} />
               </div>
+              <span className={`text-xs font-medium ${metric.text} bg-white/5 px-2 py-1 rounded`}>
+                {metric.change}
+              </span>
+            </div>
+
+            <div>
               <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">
                 {metric.name}
               </p>
-              <p className="text-3xl font-bold text-[var(--text-primary)]">
+              <h3 className="text-3xl font-bold text-white">
                 {metric.value}
-              </p>
+              </h3>
             </div>
           </motion.div>
         ))}
@@ -447,11 +456,10 @@ export default function AnalysisPage() {
                       initial={{ width: 0 }}
                       animate={{ width: `${setup.winrate}%` }}
                       transition={{ delay: index * 0.1, duration: 0.5, type: 'tween' as const }}
-                      className={`h-2 rounded-full ${
-                        setup.winrate > 50
+                      className={`h-2 rounded-full ${setup.winrate > 50
                           ? 'bg-gradient-to-r from-green-500 to-emerald-500'
                           : 'bg-gradient-to-r from-red-500 to-orange-500'
-                      }`}
+                        }`}
                     />
                   </div>
                   <p className="text-xs text-[var(--text-secondary)]">
@@ -489,9 +497,8 @@ export default function AnalysisPage() {
                     {dir.direction}
                   </span>
                   <span
-                    className={`text-sm font-semibold ${
-                      dir.profit > 0 ? 'text-green-500' : 'text-red-500'
-                    }`}
+                    className={`text-sm font-semibold ${dir.profit > 0 ? 'text-green-500' : 'text-red-500'
+                      }`}
                   >
                     {resultType === 'money'
                       ? `$${dir.profit.toFixed(2)}`
