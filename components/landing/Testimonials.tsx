@@ -29,8 +29,12 @@ const testimonials = [
 
 export default function Testimonials() {
   return (
-    <section className="py-24 sm:py-32 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section className="py-24 sm:py-32 bg-[var(--background)] relative overflow-hidden">
+      {/* Background Orbs */}
+      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-[var(--primary)] opacity-5 blur-[150px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[var(--secondary)] opacity-5 blur-[150px] rounded-full pointer-events-none" />
+
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -38,10 +42,10 @@ export default function Testimonials() {
           transition={{ duration: 0.5 }}
           className="text-center"
         >
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-white">
+          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Lo que dicen nuestros usuarios
           </h2>
-          <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
+          <p className="mt-4 text-lg text-[var(--text-secondary)]">
             Miles de traders confían en NeuroStrat
           </p>
         </motion.div>
@@ -55,28 +59,28 @@ export default function Testimonials() {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               whileHover={{ y: -5 }}
-              className="relative rounded-2xl border border-gray-200 bg-white p-8 shadow-sm transition-all hover:shadow-xl dark:border-gray-800 dark:bg-gray-900"
+              className="relative rounded-2xl border border-white/10 bg-white/5 p-8 shadow-lg backdrop-blur-sm transition-all hover:bg-white/10 hover:border-[var(--secondary)]/30"
             >
-              <Quote className="absolute top-6 right-6 h-8 w-8 text-gray-200 dark:text-gray-800" />
+              <Quote className="absolute top-6 right-6 h-8 w-8 text-white/10" />
               
               <div className="mb-4 flex gap-1">
                 {[...Array(testimonial.rating)].map((_, i) => (
                   <Star
                     key={i}
-                    className="h-5 w-5 fill-yellow-400 text-yellow-400"
+                    className="h-5 w-5 fill-[var(--secondary)] text-[var(--secondary)]"
                   />
                 ))}
               </div>
 
-              <p className="mb-6 text-gray-700 dark:text-gray-300">
+              <p className="mb-6 text-gray-300 italic">
                 "{testimonial.content}"
               </p>
 
               <div>
-                <p className="font-semibold text-gray-900 dark:text-white">
+                <p className="font-semibold text-white">
                   {testimonial.name}
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-[var(--text-secondary)]">
                   {testimonial.role}
                 </p>
               </div>
@@ -87,4 +91,3 @@ export default function Testimonials() {
     </section>
   )
 }
-
