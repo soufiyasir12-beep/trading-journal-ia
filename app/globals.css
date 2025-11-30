@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #030014;
+  --background: #0f1120;
   --foreground: #ffffff;
 }
 
@@ -33,35 +33,26 @@
 }
 
 .dark {
-  --background: #0a0e17;
+  /* NeuroStrat Theme Variables */
+  --background: #0f1120;
   --foreground: #ffffff;
-  --card-bg: rgba(20, 27, 45, 0.6);
-  --card-border: rgba(255, 255, 255, 0.1);
-  --sidebar-bg: #0a0e17;
+  --card-bg: rgba(15, 23, 42, 0.6);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --sidebar-bg: rgba(15, 17, 32, 0.95);
   --sidebar-text: #94a3b8;
-  --navbar-border: rgba(255, 255, 255, 0.1);
+  --navbar-bg: rgba(15, 17, 32, 0.8);
+  --navbar-border: rgba(255, 255, 255, 0.05);
+
   --text-primary: #ffffff;
   --text-secondary: #94a3b8;
-  --accent: #fbbf24;
-  /* Gold */
-  --background: #05080f;
-  --foreground: #ffffff;
-  --card-bg: rgba(13, 18, 30, 0.6);
-  --card-border: rgba(255, 255, 255, 0.05);
-  --sidebar-bg: rgba(5, 8, 15, 0.95);
-  --navbar-bg: rgba(5, 8, 15, 0.8);
 
-  --neuro-neon-blue: #3b82f6;
-  --neuro-neon-purple: #8b5cf6;
-  --neuro-gold: #fbbf24;
+  --accent: #fbbf24; /* Gold */
+  --neuro-blue: #3b82f6;
+  --neuro-purple: #8b5cf6;
 
-  --glow-blue: 0 0 20px rgba(59, 130, 246, 0.5);
-  --glow-purple: 0 0 20px rgba(139, 92, 246, 0.5);
   --success: #10b981;
-  --danger: #ef4444;
+  --danger: #f43f5e;
   --warning: #f59e0b;
-  --profit-color: #10b981;
-  --loss-color: #ef4444;
 }
 
 html {
@@ -70,16 +61,30 @@ html {
 
 body {
   color: var(--foreground);
-  background-color: #05080f;
+  background-color: var(--background);
+
+  /* Neural Network Texture Implementation */
   background-image:
-    radial-gradient(circle at 100% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
-    radial-gradient(circle at 100% 0%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
-    url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 10 L90 90 M90 10 L10 90' stroke='rgba(59, 130, 246, 0.05)' stroke-width='1'/%3E%3Ccircle cx='10' cy='10' r='2' fill='rgba(59, 130, 246, 0.1)'/%3E%3Ccircle cx='90' cy='90' r='2' fill='rgba(59, 130, 246, 0.1)'/%3E%3Ccircle cx='90' cy='10' r='2' fill='rgba(139, 92, 246, 0.1)'/%3E%3Ccircle cx='10' cy='90' r='2' fill='rgba(139, 92, 246, 0.1)'/%3E%3C/svg%3E");
+    /* Top Right Glow (Blue/Purple) */
+    radial-gradient(circle at 90% 10%, rgba(59, 130, 246, 0.15) 0%, transparent 45%),
+    radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 40%),
+
+    /* Subtle Grid/Network Pattern */
+    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%233b82f6' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+
   background-repeat: no-repeat, no-repeat, repeat;
   background-position: top right, top right, center;
-  background-size: 100% 100%, 100% 100%, 200px 200px;
+  background-size: 100% 100%, 100% 100%, auto;
+
   font-family: Arial, Helvetica, sans-serif;
   min-height: 100vh;
+}
+
+/* Ensure dark mode is default if class is not present on html */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0f1120;
+  }
 }
 
 * {
@@ -88,70 +93,18 @@ body {
 
 /* Glassmorphism Utilities */
 .glass-card {
-  background: rgba(17, 25, 40, 0.75);
-  backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.125);
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .glass-nav {
-  background: rgba(3, 0, 20, 0.5);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(15, 17, 32, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Animations */
-@keyframes gradient {
-
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-.animate-gradient {
-  background-size: 200% 200%;
-  animation: gradient 3s ease infinite;
-}
-
-@keyframes float {
-  0% {
-    transform: translateY(0px);
-  }
-
-  50% {
-    transform: translateY(-20px);
-  }
-
-  100% {
-    transform: translateY(0px);
-  }
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-@keyframes glow {
-
-  0%,
-  100% {
-    box-shadow: 0 0 20px rgba(112, 66, 248, 0.5);
-  }
-
-  50% {
-    box-shadow: 0 0 40px rgba(112, 66, 248, 0.8);
-  }
-}
-
-.animate-glow {
-  animation: glow 3s ease-in-out infinite;
-}
-
-/* Smooth scrollbar */
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -162,7 +115,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--text-secondary);
+  background: #334155;
   border-radius: 4px;
 }
 

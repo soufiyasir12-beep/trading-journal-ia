@@ -4,11 +4,9 @@ import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import {
   TrendingUp,
-  TrendingDown,
-  DollarSign,
   Target,
+  DollarSign,
   Activity,
-  Sparkles,
 } from 'lucide-react'
 import Link from 'next/link'
 import DashboardAIAnalysis from '@/components/DashboardAIAnalysis'
@@ -126,41 +124,45 @@ export default function DashboardPage() {
       name: 'Total Trades',
       value: stats.totalTrades,
       icon: TrendingUp,
-      gradient: 'bg-gradient-to-b from-emerald-900/80 to-emerald-950/90',
-      border: 'border-emerald-500/20',
-      text: 'text-emerald-400',
-      chartColor: '#10b981',
-      shadow: 'shadow-emerald-500/10'
+      // Emerald Green Gradient
+      gradient: 'bg-gradient-to-br from-[#064e3b] via-[#065f46] to-[#047857]',
+      border: 'border-emerald-500/30',
+      text: 'text-emerald-300',
+      chartColor: '#34d399',
+      shadow: 'shadow-[0_0_20px_-5px_rgba(16,185,129,0.3)]'
     },
     {
       name: 'Winrate',
       value: `${stats.winrate.toFixed(1)}%`,
       icon: Target,
-      gradient: 'bg-gradient-to-b from-purple-900/80 to-purple-950/90',
-      border: 'border-purple-500/20',
-      text: 'text-purple-400',
+      // Purple/Violet Gradient
+      gradient: 'bg-gradient-to-br from-[#4c1d95] via-[#5b21b6] to-[#6d28d9]',
+      border: 'border-purple-500/30',
+      text: 'text-purple-300',
       chartColor: '#a855f7',
-      shadow: 'shadow-purple-500/10'
+      shadow: 'shadow-[0_0_20px_-5px_rgba(168,85,247,0.3)]'
     },
     {
       name: 'Profit Total',
       value: `$${stats.totalProfit.toFixed(2)}`,
       icon: DollarSign,
-      gradient: 'bg-gradient-to-b from-amber-900/80 to-amber-950/90',
-      border: 'border-amber-500/20',
-      text: 'text-amber-400',
+      // Gold/Amber Gradient
+      gradient: 'bg-gradient-to-br from-[#78350f] via-[#92400e] to-[#b45309]',
+      border: 'border-amber-500/30',
+      text: 'text-amber-300',
       chartColor: '#fbbf24',
-      shadow: 'shadow-amber-500/10'
+      shadow: 'shadow-[0_0_20px_-5px_rgba(251,191,36,0.3)]'
     },
     {
       name: 'R:R Promedio',
       value: stats.avgRR.toFixed(2),
       icon: Activity,
-      gradient: 'bg-gradient-to-b from-rose-900/80 to-rose-950/90',
-      border: 'border-rose-500/20',
-      text: 'text-rose-400',
+      // Red/Rose Gradient
+      gradient: 'bg-gradient-to-br from-[#881337] via-[#9f1239] to-[#be123c]',
+      border: 'border-rose-500/30',
+      text: 'text-rose-300',
       chartColor: '#f43f5e',
-      shadow: 'shadow-rose-500/10'
+      shadow: 'shadow-[0_0_20px_-5px_rgba(244,63,94,0.3)]'
     },
   ]
 
@@ -203,14 +205,14 @@ export default function DashboardPage() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-8 p-4"
+      className="space-y-8 p-6"
     >
       {/* Header */}
       <div className="flex flex-col gap-1 mb-4">
         <h1 className="text-3xl font-bold text-white tracking-tight">
           Dashboard
         </h1>
-        <p className="text-gray-400 text-sm">
+        <p className="text-slate-400 text-sm">
           Bienvenido a NeuroStrat, tu journal de trading con IA.
         </p>
       </div>
@@ -225,51 +227,55 @@ export default function DashboardPage() {
             key={metric.name}
             variants={itemVariants}
             whileHover={{ scale: 1.02, translateY: -5 }}
-            className={`relative overflow-hidden rounded-3xl ${metric.gradient} p-6 border ${metric.border} shadow-lg backdrop-blur-md group`}
-            style={{
-              boxShadow: `0 0 20px -5px ${metric.chartColor}20`
-            }}
+            className={`relative overflow-hidden rounded-2xl ${metric.gradient} p-6 border ${metric.border} shadow-lg backdrop-blur-md group ${metric.shadow}`}
           >
-            <div className="flex justify-between items-start mb-6">
-              <div className={`p-2 rounded-xl bg-white/5 backdrop-blur-sm border border-white/5`}>
-                <metric.icon className="h-6 w-6 text-white" />
+            {/* Inner Glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+            <div className="flex justify-between items-start mb-6 relative z-10">
+              <div className={`p-2 rounded-xl bg-black/20 backdrop-blur-sm border border-white/10`}>
+                <metric.icon className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xs font-semibold text-white/60 tracking-wider uppercase">
+              <span className="text-xs font-bold text-white/70 tracking-wider uppercase">
                 {metric.name}
               </span>
             </div>
 
             <div className="flex items-end justify-between relative z-10">
               <div>
-                <h3 className="text-4xl font-bold text-white mb-2 tracking-tight">
+                <h3 className="text-3xl font-bold text-white mb-1 tracking-tight">
                   {metric.value}
                 </h3>
-                <p className={`text-xs font-medium ${metric.text} flex items-center gap-1`}>
-                  {/* Subtext removed as requested */}
-                </p>
               </div>
 
-              {/* SVG Sparkline */}
-              <div className="w-24 h-12 opacity-80">
-                <svg width="100%" height="100%" viewBox="0 0 100 50" preserveAspectRatio="none">
+              {/* Enhanced SVG Sparkline */}
+              <div className="w-28 h-12 opacity-90">
+                <svg width="100%" height="100%" viewBox="0 0 100 50" preserveAspectRatio="none" className="overflow-visible">
                   <defs>
                     <linearGradient id={`gradient-${metric.name}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={metric.chartColor} stopOpacity="0.5" />
+                      <stop offset="0%" stopColor={metric.chartColor} stopOpacity="0.4" />
                       <stop offset="100%" stopColor={metric.chartColor} stopOpacity="0" />
                     </linearGradient>
+                    <filter id={`glow-${metric.name}`} x="-20%" y="-20%" width="140%" height="140%">
+                      <feGaussianBlur stdDeviation="2" result="blur" />
+                      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                    </filter>
                   </defs>
+                  {/* Fill area */}
                   <path
-                    d="M0,50 L0,30 Q25,10 50,35 T100,20 L100,50 Z"
+                    d="M0,50 L0,35 C20,35 30,15 50,25 C70,35 80,5 100,20 L100,50 Z"
                     fill={`url(#gradient-${metric.name})`}
-                    opacity="0.3"
+                    opacity="0.6"
                   />
+                  {/* Line stroke with smooth curve (C instead of Q for more control if needed, but simple C works well here) */}
                   <path
-                    d="M0,30 Q25,10 50,35 T100,20"
+                    d="M0,35 C20,35 30,15 50,25 C70,35 80,5 100,20"
                     fill="none"
                     stroke={metric.chartColor}
-                    strokeWidth="2"
+                    strokeWidth="2.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
+                    filter={`url(#glow-${metric.name})`}
                   />
                 </svg>
               </div>
@@ -281,17 +287,20 @@ export default function DashboardPage() {
       {/* Recent Activity */}
       <motion.div
         variants={itemVariants}
-        className="rounded-3xl bg-[#0a0e17]/80 border border-white/5 overflow-hidden backdrop-blur-xl shadow-2xl"
+        className="rounded-3xl bg-[#0f1120]/60 border border-white/5 overflow-hidden backdrop-blur-xl shadow-2xl relative"
       >
-        <div className="p-6 border-b border-white/5 flex justify-between items-center">
-          <h2 className="text-lg font-bold text-white">
+        {/* Subtle grid bg for table */}
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImEiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTTAgNDBMMDQwdjQwWiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMDMpIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjYSkiLz48L3N2Zz4=')] opacity-20 pointer-events-none" />
+
+        <div className="p-6 border-b border-white/5 flex justify-between items-center relative z-10">
+          <h2 className="text-lg font-bold text-white tracking-wide">
             Actividad Reciente
           </h2>
         </div>
 
-        <div className="p-2">
+        <div className="p-4 relative z-10">
           {stats.recentTrades.length > 0 ? (
-            <div className="space-y-1">
+            <div className="space-y-2">
               {stats.recentTrades.map((trade, index) => (
                 <Link
                   key={trade.id}
@@ -302,33 +311,38 @@ export default function DashboardPage() {
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ delay: index * 0.05 }}
-                    className="flex items-center justify-between p-4 rounded-xl hover:bg-white/5 transition-all group cursor-pointer border border-transparent hover:border-white/5"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl hover:bg-white/5 transition-all group cursor-pointer border border-transparent hover:border-white/5 gap-4 sm:gap-0"
                   >
                     <div className="flex items-center gap-4">
-                      <div className={`w-1 h-8 rounded-full ${trade.result === 'win' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' :
-                        trade.result === 'loss' ? 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]' : 'bg-amber-500'
+                      {/* Status Indicator Dot */}
+                      <div className={`w-2 h-2 rounded-full ${trade.result === 'win' ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]' :
+                        trade.result === 'loss' ? 'bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.8)]' : 'bg-amber-400'
                         }`} />
-                      <div>
-                        <p className="font-bold text-white text-sm">
-                          {trade.pair} <span className="text-gray-500 font-normal mx-2">|</span> {trade.setup}
-                        </p>
+
+                      <div className="flex flex-col">
+                        <span className="font-bold text-white text-base tracking-tight">
+                           {trade.pair}
+                        </span>
+                        <span className="text-xs text-slate-400 font-medium uppercase tracking-wider">
+                           {trade.setup}
+                        </span>
                       </div>
                     </div>
 
-                    <div className="text-sm text-gray-400 font-mono">
-                      {new Date(trade.trade_date).toLocaleDateString('es-ES')}
-                    </div>
+                    <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto">
+                      <div className="text-sm text-slate-500 font-mono">
+                        {new Date(trade.trade_date).toLocaleDateString('es-ES')}
+                      </div>
 
-                    <div className="flex items-center gap-6">
-                      <div className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider ${trade.result === 'win' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-                        trade.result === 'loss' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                      <div className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm ${trade.result === 'win' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_-5px_rgba(16,185,129,0.3)]' :
+                        trade.result === 'loss' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20 shadow-[0_0_10px_-5px_rgba(244,63,94,0.3)]' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                         }`}>
                         {trade.result === 'win' ? 'WIN' : trade.result === 'loss' ? 'LOSS' : 'BE'}
                       </div>
 
                       <div className="text-right min-w-[80px]">
-                        <p className="text-sm font-mono text-gray-400">
-                          <span className={`font-bold ${trade.result === 'win' ? 'text-emerald-400' :
+                        <p className="text-sm font-mono font-bold">
+                          <span className={`${trade.result === 'win' ? 'text-emerald-400' :
                             trade.result === 'loss' ? 'text-rose-400' : 'text-amber-400'
                             }`}>
                             {(() => {
@@ -348,7 +362,7 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-slate-500">
               No hay actividad reciente
             </div>
           )}
