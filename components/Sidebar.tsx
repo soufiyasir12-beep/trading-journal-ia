@@ -43,8 +43,8 @@ export default function Sidebar() {
         whileHover={{ scale: 1.02 }}
         onClick={() => router.push('/')}
       >
-        <Brain className="h-8 w-8 text-[var(--accent)]" />
-        <h1 className="text-xl font-bold text-[var(--text-primary)] tracking-wide">
+        <Brain className="h-8 w-8 text-amber-400" />
+        <h1 className="text-xl font-bold tracking-wide bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 bg-clip-text text-transparent filter drop-shadow-sm">
           NeuroStrat
         </h1>
       </motion.div>
@@ -64,13 +64,13 @@ export default function Sidebar() {
               <button
                 onClick={() => handleNavigation(item.href)}
                 className={`group flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all relative w-full text-left cursor-pointer ${isActive || pathname.startsWith(item.href + '/')
-                  ? 'text-[var(--accent)]'
+                  ? 'text-white'
                   : 'text-[var(--sidebar-text)] hover:text-[var(--text-primary)]'
                   }`}
               >
                 <div className="relative z-10 flex items-center gap-3">
                   <item.icon
-                    className={`h-5 w-5 transition-transform ${isActive ? 'scale-110' : 'group-hover:scale-110'
+                    className={`h-5 w-5 transition-transform ${isActive ? 'scale-110 text-amber-400' : 'group-hover:scale-110'
                       }`}
                   />
                   {item.name}
@@ -79,7 +79,7 @@ export default function Sidebar() {
                 {isActive && (
                   <motion.div
                     layoutId="activeTab"
-                    className="absolute inset-0 rounded-lg bg-[var(--accent)]/10 border border-[var(--accent)]/20"
+                    className="absolute inset-0 rounded-lg bg-[rgba(251,191,36,0.1)] border border-[rgba(251,191,36,0.2)] shadow-[0_0_15px_rgba(251,191,36,0.15)]"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -89,7 +89,7 @@ export default function Sidebar() {
 
                 {isActive && (
                   <motion.div
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-[var(--accent)] rounded-r-full"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-amber-400 rounded-r-full shadow-[0_0_10px_rgba(251,191,36,0.8)]"
                     layoutId="activeIndicator"
                   />
                 )}
@@ -101,4 +101,3 @@ export default function Sidebar() {
     </motion.div>
   )
 }
-

@@ -12,7 +12,8 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('light')
+  // Default to 'dark' for NeuroStrat aesthetic
+  const [theme, setTheme] = useState<Theme>('dark')
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -21,8 +22,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (savedTheme) {
       setTheme(savedTheme)
     } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      setTheme(prefersDark ? 'dark' : 'light')
+      // Prioritize dark mode regardless of system preference for this specific branding
+      setTheme('dark')
     }
   }, [])
 
@@ -31,6 +32,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('theme', theme)
       document.documentElement.classList.remove('light', 'dark')
       document.documentElement.classList.add(theme)
+    } else {
+       // Ensure dark mode is applied immediately on server/first render if possible
+       // to avoid flash, though 'mounted' check usually prevents hydration mismatch
+       // We can rely on globals.css defaults too.
     }
   }, [theme, mounted])
 
@@ -38,7 +43,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
   }
 
-  // Siempre proporcionar el contexto, incluso antes de montar
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
       {children}
@@ -53,4 +57,3 @@ export function useTheme() {
   }
   return context
 }
-
