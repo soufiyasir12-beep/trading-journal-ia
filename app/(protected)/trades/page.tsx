@@ -764,8 +764,8 @@ export default function TradesPage() {
               className="fixed inset-0 z-50 flex items-center justify-center p-4"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-[var(--card-border)]">
-                <div className="sticky top-0 bg-[var(--card-bg)] border-b border-[var(--card-border)] p-6 flex items-center justify-between">
+              <div className="bg-[var(--card-bg-opaque)] rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-[var(--card-border)]">
+                <div className="sticky top-0 bg-[var(--card-bg-opaque)] border-b border-[var(--card-border)] p-6 flex items-center justify-between">
                   <h2 className="text-2xl font-bold text-[var(--text-primary)]">
                     {selectedDate ? format(selectedDate, 'dd MMMM yyyy', { locale: es }) : 'Nuevo Trade'}
                   </h2>
@@ -1098,8 +1098,8 @@ export default function TradesPage() {
               className="fixed inset-0 z-50 flex items-center justify-center p-4"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="bg-[var(--card-bg)] rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-[var(--card-border)]">
-                <div className="sticky top-0 bg-[var(--card-bg)] border-b border-[var(--card-border)] p-6 flex items-center justify-between">
+              <div className="bg-[var(--card-bg-opaque)] rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-[var(--card-border)]">
+                <div className="sticky top-0 bg-[var(--card-bg-opaque)] border-b border-[var(--card-border)] p-6 flex items-center justify-between">
                   <h2 className="text-2xl font-bold text-[var(--text-primary)]">
                     Detalles del Trade
                   </h2>
