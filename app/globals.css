@@ -30,6 +30,7 @@
   --warning: #f59e0b;
   --profit-color: #10b981;
   --loss-color: #ef4444;
+  --card-bg-opaque: #ffffff;
 }
 
 .dark {
@@ -62,6 +63,7 @@
   --warning: #f59e0b;
   --profit-color: #10b981;
   --loss-color: #ef4444;
+  --card-bg-opaque: #0d121e;
 }
 
 html {
