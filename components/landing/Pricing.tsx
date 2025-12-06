@@ -43,24 +43,26 @@ export default function Pricing() {
   const router = useRouter()
 
   return (
-    <section id="pricing" className="py-24 sm:py-32">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section id="pricing" className="py-24 sm:py-32 relative">
+      <div className="absolute inset-0 bg-gradient-to-b from-[#030014] to-transparent pointer-events-none" />
+
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-center"
+          className="text-center mb-16"
         >
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-white">
+          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl mb-4">
             Precios Simples y Transparentes
           </h2>
-          <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
-            Elige el plan que mejor se adapte a tus necesidades
+          <p className="text-lg text-gray-400">
+            Elige el plan que mejor se adapte a tus necesidades. Sin sorpresas.
           </p>
         </motion.div>
 
-        <div className="mt-16 grid grid-cols-1 gap-8 lg:grid-cols-2 lg:max-w-5xl lg:mx-auto">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:max-w-5xl lg:mx-auto">
           {plans.map((plan, index) => (
             <motion.div
               key={index}
@@ -69,15 +71,14 @@ export default function Pricing() {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               whileHover={{ y: -5 }}
-              className={`relative rounded-2xl border-2 p-8 shadow-lg transition-all ${
-                plan.popular
-                  ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 dark:border-blue-400'
-                  : 'border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900'
-              }`}
+              className={`relative rounded-3xl border p-8 shadow-2xl transition-all ${plan.popular
+                  ? 'border-amber-500/50 bg-[#0a0a0a] shadow-amber-500/10'
+                  : 'border-white/5 bg-[#0a0a0a]/50 hover:border-white/10'
+                }`}
             >
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-1 text-sm font-semibold text-white shadow-lg">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-4 py-1 text-sm font-bold text-black shadow-lg shadow-amber-500/20">
                     <Zap className="h-4 w-4" />
                     Más Popular
                   </span>
@@ -85,20 +86,20 @@ export default function Pricing() {
               )}
 
               <div className="text-center">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                <h3 className="text-2xl font-bold text-white">
                   {plan.name}
                 </h3>
                 <div className="mt-4 flex items-baseline justify-center gap-1">
-                  <span className="text-4xl font-bold text-gray-900 dark:text-white">
+                  <span className="text-5xl font-bold text-white tracking-tight">
                     {plan.price}
                   </span>
                   {plan.period && (
-                    <span className="text-lg text-gray-600 dark:text-gray-400">
+                    <span className="text-lg text-gray-400">
                       {plan.period}
                     </span>
                   )}
                 </div>
-                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                <p className="mt-2 text-sm text-gray-400">
                   {plan.description}
                 </p>
               </div>
@@ -106,8 +107,10 @@ export default function Pricing() {
               <ul className="mt-8 space-y-4">
                 {plan.features.map((feature, featureIndex) => (
                   <li key={featureIndex} className="flex items-start gap-3">
-                    <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-500" />
-                    <span className="text-gray-700 dark:text-gray-300">
+                    <div className={`mt-1 p-0.5 rounded-full ${plan.popular ? 'bg-amber-500/20' : 'bg-white/10'}`}>
+                      <Check className={`h-4 w-4 ${plan.popular ? 'text-amber-500' : 'text-gray-400'}`} />
+                    </div>
+                    <span className="text-gray-300 text-sm">
                       {feature}
                     </span>
                   </li>
@@ -115,14 +118,13 @@ export default function Pricing() {
               </ul>
 
               <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => router.push('/auth/register')}
-                className={`mt-8 w-full rounded-lg px-6 py-3 font-semibold transition-all cursor-pointer ${
-                  plan.popular
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:shadow-xl'
-                    : 'border-2 border-gray-300 bg-white text-gray-900 hover:border-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600'
-                }`}
+                className={`mt-8 w-full rounded-xl px-6 py-4 font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${plan.popular
+                    ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-black hover:shadow-lg hover:shadow-amber-500/20'
+                    : 'bg-white/5 text-white hover:bg-white/10 border border-white/5'
+                  }`}
               >
                 {plan.cta}
               </motion.button>
@@ -133,4 +135,3 @@ export default function Pricing() {
     </section>
   )
 }
-
